@@ -233,11 +233,13 @@ body {
 
 .footer-links {
     margin-bottom: 1rem;
+    font-size: 0.8rem;
 }
 
 .footer-links a {
-    color: var(--color-text);
+    color: var(--color-muted);
     text-decoration: none;
+    margin: 0 0.25rem;
 }
 
 .footer-links a:hover {
