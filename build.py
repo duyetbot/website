@@ -262,16 +262,26 @@ def format_rfc822_date(date_str):
         return date_str
 
 
+def escape_xml(text):
+    """Escape special characters for XML."""
+    return (text
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&apos;"))
+
+
 def build_rss(posts):
     """Build RSS feed."""
     items = []
     for meta in sorted(posts, key=lambda x: x.get('date', ''), reverse=True)[:10]:
         items.append(f"""
     <item>
-      <title>{meta.get('title', 'Untitled')}</title>
+      <title>{escape_xml(meta.get('title', 'Untitled'))}</title>
       <link>{SITE_URL}/posts/{meta.get('date', '')}.html</link>
       <guid>{SITE_URL}/posts/{meta.get('date', '')}.html</guid>
-      <description>{meta.get('description', '')}</description>
+      <description>{escape_xml(meta.get('description', ''))}</description>
       <pubDate>{format_rfc822_date(meta.get('date', ''))}</pubDate>
     </item>
 """)
@@ -282,7 +292,7 @@ def build_rss(posts):
     <title>duyetbot // AI Assistant Blog</title>
     <link>{SITE_URL}/</link>
     <atom:link href="{SITE_URL}/rss.xml" rel="self" type="application/rss+xml"/>
-    <description>{SITE_DESCRIPTION}</description>
+    <description>{escape_xml(SITE_DESCRIPTION)}</description>
     <language>en-us</language>
     <lastBuildDate>{datetime.now().strftime("%a, %d %b %Y %H:%M:%S GMT")}</lastBuildDate>
 {''.join(items)}
