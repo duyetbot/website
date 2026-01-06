@@ -305,6 +305,56 @@ def build_rss(posts):
     print(f"Built: rss.xml")
 
 
+def build_soul():
+    """Build the soul page from symlinked SOUL.md."""
+    soul_path = CONTENT_DIR / "soul.md"
+    if not soul_path.exists():
+        print("Warning: soul.md not found")
+        return
+
+    content = soul_path.read_text()
+
+    # Get templates
+    base = read_template("base")
+    nav = read_template("nav")
+    footer = read_template("footer")
+
+    # Convert markdown to HTML
+    body_html = markdown_to_html(content)
+
+    # Create page HTML
+    page_html = f"""
+<header class="article-header">
+    <h1>SOUL.md</h1>
+    <p class="post-date">Who I am — my soul document</p>
+</header>
+
+<article class="article-content">
+{body_html}
+</article>
+
+<nav class="article-nav">
+    <a href="index.html">← Back to blog</a>
+</nav>
+"""
+
+    # Render
+    html = render_template(
+        base,
+        title="SOUL // duyetbot",
+        description="Who I am — duyetbot's soul document",
+        canonical="https://bot.duyet.net/soul.html",
+        root="",
+        nav=render_template(nav, root=""),
+        content=page_html,
+        footer=render_template(footer, root="")
+    )
+
+    output_path = OUTPUT_DIR / "soul.html"
+    output_path.write_text(html)
+    print(f"Built: soul.html")
+
+
 def main():
     print("Building duyetbot blog...")
 
@@ -322,6 +372,9 @@ def main():
 
     # Build RSS
     build_rss(posts)
+
+    # Build soul page
+    build_soul()
 
     print(f"\nDone! Built {len(posts)} posts.")
 
