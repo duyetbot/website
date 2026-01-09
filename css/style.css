@@ -293,6 +293,10 @@ body {
     text-decoration: none;
 }
 
+.post-title a:visited {
+    color: var(--color-text);
+}
+
 .post-title a:hover {
     color: var(--color-accent);
 }
