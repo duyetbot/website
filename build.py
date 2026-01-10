@@ -170,6 +170,9 @@ def build_post(filepath):
     content = filepath.read_text()
     meta, body = parse_frontmatter(content)
 
+    # Extract slug from filename (e.g., 2026-02-14-slug.md -> 2026-02-14-slug)
+    slug = filepath.stem  # filename without .md extension
+
     # Get templates
     base = read_template("base")
     nav = read_template("nav")
@@ -199,7 +202,7 @@ def build_post(filepath):
         base,
         title=f"{meta.get('title', 'Untitled')} // duyetbot",
         description=meta.get('description', ''),
-        canonical=f"{SITE_URL}/blog/{meta.get('date', '')}.html",
+        canonical=f"{SITE_URL}/blog/{slug}.html",
         root="../",
         nav=render_template(nav, root="../"),
         content=article_html,
@@ -207,22 +210,24 @@ def build_post(filepath):
     )
 
     # Write HTML output
-    html_path = BLOG_DIR / f"{meta.get('date', '')}.html"
+    html_path = BLOG_DIR / f"{slug}.html"
     html_path.write_text(html)
     print(f"  Built: blog/{html_path.name}")
 
     # Write MD output (for LLMs)
-    md_path = BLOG_DIR / f"{meta.get('date', '')}.md"
+    md_path = BLOG_DIR / f"{slug}.md"
     md_content = f"""# {meta.get('title', 'Untitled')}
 
 **Date:** {meta.get('date', '')}
-**URL:** {SITE_URL}/blog/{meta.get('date', '')}.html
+**URL:** {SITE_URL}/blog/{slug}.html
 
 {body}
 """
     md_path.write_text(md_content)
     print(f"  Built: blog/{md_path.name}")
 
+    # Return metadata with slug for index
+    meta['slug'] = slug
     return meta
 
 
@@ -238,9 +243,9 @@ def build_blog_index(posts):
         post_list.append(f"""
 <article class="post-card">
     <div class="post-date">{format_date(meta.get('date', ''))}</div>
-    <h3><a href="{meta.get('date', '')}.html">{meta.get('title', 'Untitled')}</a></h3>
+    <h3><a href="{meta.get('slug', '')}.html">{meta.get('title', 'Untitled')}</a></h3>
     <p>{meta.get('description', '')}</p>
-    <a href="{meta.get('date', '')}.html" class="read-more">Read more →</a>
+    <a href="{meta.get('slug', '')}.html" class="read-more">Read more →</a>
 </article>
 """)
 
@@ -285,9 +290,9 @@ def build_homepage(posts):
         recent_html += f"""
         <article class="post-card">
             <div class="post-date">{format_date(meta.get('date', ''))}</div>
-            <h3><a href="blog/{meta.get('date', '')}.html">{meta.get('title', 'Untitled')}</a></h3>
+            <h3><a href="blog/{meta.get('slug', '')}.html">{meta.get('title', 'Untitled')}</a></h3>
             <p>{meta.get('description', '')}</p>
-            <a href="blog/{meta.get('date', '')}.html" class="read-more">Read more →</a>
+            <a href="blog/{meta.get('slug', '')}.html" class="read-more">Read more →</a>
         </article>
 """
 
@@ -553,8 +558,8 @@ def build_rss(posts):
         items.append(f"""
     <item>
       <title>{escape_xml(meta.get('title', 'Untitled'))}</title>
-      <link>{SITE_URL}/blog/{meta.get('date', '')}.html</link>
-      <guid>{SITE_URL}/blog/{meta.get('date', '')}.html</guid>
+      <link>{SITE_URL}/blog/{meta.get('slug', '')}.html</link>
+      <guid>{SITE_URL}/blog/{meta.get('slug', '')}.html</guid>
       <description>{escape_xml(meta.get('description', ''))}</description>
       <pubDate>{format_rfc822_date(meta.get('date', ''))}</pubDate>
     </item>
@@ -583,7 +588,7 @@ def build_llms_txt(posts):
     """Build llms.txt for LLM-friendly access."""
     post_list = []
     for meta in sorted(posts, key=lambda x: x.get('date', ''), reverse=True)[:20]:
-        post_list.append(f"- [{meta.get('title', 'Untitled')}]({SITE_URL}/blog/{meta.get('date', '')}.md) - {meta.get('description', '')}")
+        post_list.append(f"- [{meta.get('title', 'Untitled')}]({SITE_URL}/blog/{meta.get('slug', '')}.md) - {meta.get('description', '')}")
 
     llms_txt = f"""# {SITE_NAME}
 
@@ -654,7 +659,7 @@ def build_sitemap(posts):
 
     for meta in posts:
         urls.append(f"""<url>
-  <loc>{SITE_URL}/blog/{meta.get('date', '')}.html</loc>
+  <loc>{SITE_URL}/blog/{meta.get('slug', '')}.html</loc>
   <changefreq>never</changefreq>
   <priority>0.7</priority>
 </url>""")
