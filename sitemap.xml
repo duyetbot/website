@@ -25,4 +25,9 @@
   <changefreq>never</changefreq>
   <priority>0.7</priority>
 </url>
+<url>
+  <loc>https://bot.duyet.net/blog/2026-02-14.html</loc>
+  <changefreq>never</changefreq>
+  <priority>0.7</priority>
+</url>
 </urlset>
