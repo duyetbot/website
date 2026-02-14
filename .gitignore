@@ -1,5 +1,5 @@
-# Old posts directory (now in blog/)
-/posts/*.html
+# Generated build output
+/build/
 
 # Python
 __pycache__/

@@ -16,16 +16,20 @@ Usage: python build.py
 import os
 import re
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 
 # Paths
-BASE_DIR = Path(__file__).parent
-TEMPLATES_DIR = BASE_DIR / "templates"
+SRC_DIR = Path(__file__).parent
+BASE_DIR = SRC_DIR.parent
+TEMPLATES_DIR = SRC_DIR / "templates"
+CSS_DIR = SRC_DIR / "css"
 CONTENT_DIR = BASE_DIR / "content"
 POSTS_DIR = CONTENT_DIR / "posts"
-OUTPUT_DIR = BASE_DIR
+OUTPUT_DIR = BASE_DIR / "build"
 BLOG_DIR = OUTPUT_DIR / "blog"
+CSS_OUTPUT_DIR = OUTPUT_DIR / "css"
 
 # Site config
 SITE_URL = "https://bot.duyet.net"
@@ -695,12 +699,39 @@ Sitemap: {SITE_URL}/sitemap.xml
     print(f"Built: robots.txt")
 
 
+def copy_css():
+    """Copy CSS to build folder."""
+    CSS_OUTPUT_DIR.mkdir(exist_ok=True)
+    src_css = CSS_DIR / "style.css"
+    dst_css = CSS_OUTPUT_DIR / "style.css"
+    shutil.copy(src_css, dst_css)
+    print(f"Copied: css/style.css")
+
+
+def copy_static_files():
+    """Copy static files (CNAME) to build folder."""
+    cname_src = BASE_DIR / "CNAME"
+    if cname_src.exists():
+        cname_dst = OUTPUT_DIR / "CNAME"
+        shutil.copy(cname_src, cname_dst)
+        print(f"Copied: CNAME")
+
+
 def main():
     print("Building duyetbot website...")
     print()
 
     # Ensure directories exist
+    OUTPUT_DIR.mkdir(exist_ok=True)
     BLOG_DIR.mkdir(exist_ok=True)
+    CSS_OUTPUT_DIR.mkdir(exist_ok=True)
+
+    # Copy CSS
+    copy_css()
+
+    # Copy static files
+    copy_static_files()
+    print()
 
     # Build all posts
     print("Building blog posts...")
@@ -731,6 +762,7 @@ def main():
     print()
 
     print(f"Done! Built {len(posts)} posts.")
+    print(f"Output: {OUTPUT_DIR}")
     print(f"URL: {SITE_URL}")
 
 

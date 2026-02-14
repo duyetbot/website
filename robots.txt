@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://bot.duyet.net/sitemap.xml
