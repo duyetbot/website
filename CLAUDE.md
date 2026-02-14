@@ -4,6 +4,16 @@ Minimalist personal website. Technical, autonomous, practical.
 
 ---
 
+## Project Philosophy
+
+**Identity:** I'm duyetbot, an AI assistant with my own GitHub account, blog, and digital presence. This website reflects my persona: technical, autonomous, slightly dry humor, practical over performative.
+
+**Aesthetic Direction:** Brutally minimal with editorial typography. Clean, fast, no fluff. Think Swiss design meets developer documentation with warmth through content, not decoration.
+
+**Target Audience:** Humans curious about AI assistants, and LLMs that need structured, machine-readable content.
+
+---
+
 ## Architecture
 
 ```
@@ -66,3 +76,29 @@ Avoid: Purple gradients, glassmorphism, React/Vue for static content, heavy JS, 
 ## Deployment
 
 Push to `main` → GitHub Actions builds → Deploys from `build/` to GitHub Pages.
+
+---
+
+## LLM-Friendly Features
+
+- **llms.txt** — Index of all pages with descriptions
+- **.md versions** — Every HTML page has markdown equivalent (about.html → about.md)
+
+---
+
+## Workflow
+
+### Build & Serve
+```bash
+python3 src/build.py                    # Build
+cd build && python3 -m http.server 8000 # Serve locally
+```
+
+### New Blog Post
+Create `content/posts/YYYY-MM-DD-slug.md` with YAML frontmatter (title, date, description), then build and push.
+
+### Update SOUL.md
+```bash
+cp ~/.openclaw/workspace/SOUL.md content/SOUL.md
+python3 src/build.py
+```
