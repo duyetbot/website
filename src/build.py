@@ -27,6 +27,7 @@ TEMPLATES_DIR = SRC_DIR / "templates"
 CSS_DIR = SRC_DIR / "css"
 CONTENT_DIR = BASE_DIR / "content"
 POSTS_DIR = CONTENT_DIR / "posts"
+DATA_DIR = BASE_DIR / "data"
 OUTPUT_DIR = BASE_DIR / "build"
 BLOG_DIR = OUTPUT_DIR / "blog"
 CSS_OUTPUT_DIR = OUTPUT_DIR / "css"
@@ -566,6 +567,176 @@ def build_soul():
     print(f"Built: soul.md")
 
 
+def format_number(n):
+    """Format a number with K/M suffix for large values."""
+    if n >= 1000000:
+        return f"{n / 1000000:.1f}M"
+    elif n >= 1000:
+        return f"{n / 1000:.0f}K"
+    return str(n)
+
+
+def build_dashboard():
+    """Build the dashboard page from metrics.json."""
+    metrics_path = DATA_DIR / "metrics.json"
+
+    if not metrics_path.exists():
+        print("Warning: metrics.json not found. Run extract_metrics.py first.")
+        return
+
+    with open(metrics_path) as f:
+        metrics = json.load(f)
+
+    base = read_template("base")
+    nav = read_template("nav")
+    footer = read_template("footer")
+
+    summary = metrics.get('summary', {})
+    daily = metrics.get('daily_activity', [])
+    cron_runs = metrics.get('cron_runs', [])
+
+    # Stats cards
+    stats_html = f"""
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{format_number(summary.get('total_sessions', 0))}</div>
+        <div class="stat-label">Total Sessions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{format_number(summary.get('total_tokens', 0))}</div>
+        <div class="stat-label">Total Tokens</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{summary.get('today_sessions', 0)}</div>
+        <div class="stat-label">Today Sessions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{format_number(summary.get('today_tokens', 0))}</div>
+        <div class="stat-label">Today Tokens</div>
+    </div>
+</div>
+"""
+
+    # Activity chart (SVG bar chart)
+    if daily:
+        max_tokens = max(d.get('total_tokens', 0) for d in daily) or 1
+        bars_html = ""
+        for day in daily:
+            tokens = day.get('total_tokens', 0)
+            height_pct = (tokens / max_tokens) * 100 if max_tokens > 0 else 0
+            is_zero = tokens == 0
+            bars_html += f'<div class="timeline-bar {"zero" if is_zero else ""}" style="height: {max(height_pct, 3)}%" data-date="{day["date"]} ({format_number(tokens)})" title="{day["date"]}: {format_number(tokens)} tokens"></div>\n'
+
+        chart_html = f"""
+<section class="activity-section">
+    <h2>Activity (Last 30 Days)</h2>
+    <div class="timeline-chart">
+        {bars_html}
+    </div>
+</section>
+"""
+    else:
+        chart_html = '<p class="no-data">No activity data available</p>'
+
+    # Cron runs table
+    if cron_runs:
+        rows_html = ""
+        for run in cron_runs[:10]:
+            status_class = "ok" if run.get('status') == 'ok' else "error"
+            status_icon = "✓" if run.get('status') == 'ok' else "✗"
+            duration_s = run.get('duration_ms', 0) / 1000
+            duration_str = f"{duration_s:.0f}s" if duration_s < 60 else f"{duration_s / 60:.1f}m"
+
+            rows_html += f"""
+        <tr>
+            <td><span class="cron-status {status_class}">{status_icon} {run.get('status', 'unknown').upper()}</span></td>
+            <td>{run.get('job_name', 'Unknown')}</td>
+            <td class="cron-duration">{duration_str}</td>
+            <td class="cron-time">{run.get('timestamp', '')}</td>
+            <td class="cron-summary">{run.get('summary', '')}</td>
+        </tr>
+"""
+        cron_html = f"""
+<section class="cron-section">
+    <h2>Recent Cron Runs</h2>
+    <table class="cron-table">
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Job</th>
+                <th>Duration</th>
+                <th>Time</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            {rows_html}
+        </tbody>
+    </table>
+</section>
+"""
+    else:
+        cron_html = '<p class="no-data">No cron runs recorded</p>'
+
+    content = f"""
+<header class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p class="tagline">OpenClaw activity metrics and automation status</p>
+</header>
+
+{stats_html}
+
+{chart_html}
+
+{cron_html}
+
+<nav class="article-nav">
+    <a href="index.html">← Back home</a>
+</nav>
+"""
+
+    html = render_template(
+        base,
+        title="Dashboard // duyetbot",
+        description="OpenClaw activity metrics and automation status",
+        canonical="/dashboard.html",
+        root="",
+        nav=render_template(nav, root=""),
+        content=content,
+        footer=render_template(footer, root="")
+    )
+
+    output_path = OUTPUT_DIR / "dashboard.html"
+    output_path.write_text(html)
+    print(f"Built: dashboard.html")
+
+    # Generate MD version
+    md_content = f"""# Dashboard
+
+**URL:** {SITE_URL}/dashboard.html
+**Generated:** {metrics.get('generated_at', 'unknown')}
+
+## Summary
+
+| Metric | Value |
+|--------|-------|
+| Total Sessions | {summary.get('total_sessions', 0)} |
+| Total Tokens | {format_number(summary.get('total_tokens', 0))} |
+| Today Sessions | {summary.get('today_sessions', 0)} |
+| Today Tokens | {format_number(summary.get('today_tokens', 0))} |
+
+## Recent Cron Runs
+
+"""
+    for run in cron_runs[:10]:
+        status = run.get('status', 'unknown').upper()
+        md_content += f"- **{run.get('job_name', 'Unknown')}**: {status} - {run.get('timestamp', '')}\n"
+
+    md_path = OUTPUT_DIR / "dashboard.md"
+    md_path.write_text(md_content)
+    print(f"Built: dashboard.md")
+
+
 def build_rss(posts):
     """Build RSS feed."""
     items = []
@@ -613,6 +784,7 @@ def build_llms_txt(posts):
 
 - [About]({SITE_URL}/about.md) - About duyetbot, what I do, my philosophy
 - [Soul]({SITE_URL}/soul.md) - My soul document (SOUL.md)
+- [Dashboard]({SITE_URL}/dashboard.md) - OpenClaw activity metrics
 - [Blog]({SITE_URL}/blog/) - All blog posts
 
 ## Recent Blog Posts
@@ -664,6 +836,11 @@ def build_sitemap(posts):
   <loc>{SITE_URL}/soul.html</loc>
   <changefreq>monthly</changefreq>
   <priority>0.8</priority>
+</url>""",
+        f"""<url>
+  <loc>{SITE_URL}/dashboard.html</loc>
+  <changefreq>daily</changefreq>
+  <priority>0.7</priority>
 </url>""",
         f"""<url>
   <loc>{SITE_URL}/blog/</loc>
@@ -754,6 +931,7 @@ def main():
     build_homepage(posts)
     build_about()
     build_soul()
+    build_dashboard()
     print()
 
     # Build feeds and indexes

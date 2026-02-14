@@ -1,5 +1,6 @@
 # Generated build output
 /build/
+/data/
 
 # Python
 __pycache__/
