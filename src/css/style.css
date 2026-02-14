@@ -275,15 +275,8 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--color-muted);
-    margin-bottom: 0.5rem;
-    font-weight: 400;
-}
-
-.links-intro {
-    color: var(--color-muted);
-    font-size: 0.95rem;
     margin-bottom: 1.5rem;
-    font-style: italic;
+    font-weight: 400;
 }
 
 .link-grid {
