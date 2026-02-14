@@ -82,8 +82,11 @@ def markdown_to_html(text):
     # Code
     text = re.sub(r"`(.+?)`", r"<code>\1</code>", text)
 
-    # Links
+    # Links - convert .md to .html for internal links
     text = re.sub(r"\[(.+?)\]\((.+?)\)", r'<a href="\2">\1</a>', text)
+
+    # Convert internal .md links to .html (exclude external http/https links)
+    text = re.sub(r'href="([^"]+)\.md"', r'href="\1.html"', text)
 
     # Lists
     lines = text.split("\n")
