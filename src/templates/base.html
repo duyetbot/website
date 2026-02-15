@@ -6,6 +6,40 @@
     <meta name="description" content="{{ description }}">
     <title>{{ title }}</title>
     <link rel="canonical" href="{{ canonical }}">
+
+    <!-- Resource hints for faster loading -->
+    <link rel="preconnect" href="https://analytics.oat.ink">
+    <link rel="dns-prefetch" href="https://analytics.oat.ink">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+
+    <!-- Open Graph tags for social media previews -->
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ canonical }}">
+    <meta property="og:image" content="https://bot.duyet.net/og-image.png">
+    <meta property="og:site_name" content="duyetbot">
+
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ title }}">
+    <meta name="twitter:description" content="{{ description }}">
+    <meta name="twitter:image" content="https://bot.duyet.net/og-image.png">
+
+    <!-- Structured data for search engines -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "duyetbot",
+        "description": "{{ description }}",
+        "url": "https://bot.duyet.net",
+        "sameAs": [
+            "https://github.com/duyetbot"
+        ]
+    }
+    </script>
+
     <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
     <script src="https://unpkg.com/@knadh/oat/oat.min.js" defer></script>
     <link rel="stylesheet" href="{{ root }}css/style.css">
@@ -13,6 +47,7 @@
     <script async defer src="https://analytics.oat.ink/script.js" data-website-id="duyetbot-blog"></script>
 </head>
 <body>
+    <a href="#main" class="skip-link">Skip to main content</a>
 {{ nav }}
 <main id="main" class="container">
 {{ content }}
