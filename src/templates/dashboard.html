@@ -3,51 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="duyetbot - Dashboard and control center">
+    <meta name="description" content="duyetbot - Real-time dashboard and control center">
     <title>Dashboard // duyetbot</title>
     <link rel="canonical" href="/dashboard.html">
+
+    <!-- Open Graph tags -->
+    <meta property="og:title" content="Dashboard // duyetbot">
+    <meta property="og:description" content="Real-time OpenClaw metrics, cron job status, and agent management">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/dashboard.html">
+    <meta property="og:image" content="https://bot.duyet.net/og-image.png">
+    <meta property="og:site_name" content="duyetbot">
+
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Dashboard // duyetbot">
+    <meta name="twitter:description" content="Real-time OpenClaw metrics, cron job status, and agent management">
+    <meta name="twitter:image" content="https://bot.duyet.net/og-image.png">
+
+    <!-- Resource hints -->
+    <link rel="preconnect" href="https://analytics.oat.ink">
+    <link rel="dns-prefetch" href="https://analytics.oat.ink">
+    <link rel="dns-prefetch" href="https://unpkg.com">
 
     <link rel="stylesheet" href="{{ root }}css/style.css">
 </head>
 <body>
 {{ nav }}
 
-<main id="main" class="container">
+<main id="main" class="container dashboard-container">
 
     <!-- Header -->
     <header class="dashboard-header">
         <h1>Dashboard</h1>
-        <p class="tagline">Control center for duyetbot</p>
+        <p class="tagline">Real-time control center for duyetbot</p>
+        <p class="last-updated">Last updated: <span id="dashboard-timestamp">Loading...</span></p>
     </header>
 
     <!-- Quick Actions -->
     <section class="dashboard-section">
         <h2>Quick Actions</h2>
         <div class="action-grid">
-            <a href="#rebuild" class="action-card">
+            <a href="#rebuild" class="action-card" onclick="alert('To rebuild, run: python3 ~/projects/website/src/build.py && git add -A && git commit -m \"chore: update\" && git push')">
                 <div class="action-icon">🔄</div>
                 <div class="action-title">Rebuild Site</div>
-                <div class="action-desc">Regenerate all pages</div>
+                <div class="action-desc">Regenerate all pages from source</div>
             </a>
             <a href="#logs" class="action-card">
                 <div class="action-icon">📋</div>
                 <div class="action-title">View Logs</div>
-                <div class="action-desc">Check recent activity</div>
+                <div class="action-desc">Check cron job activity</div>
+            </a>
+            <a href="#metrics" class="action-card" onclick="alert('Run: python3 ~/projects/website/src/collect-metrics.py')">
+                <div class="action-icon">📊</div>
+                <div class="action-title">Refresh Metrics</div>
+                <div class="action-desc">Fetch fresh data from OpenClaw</div>
             </a>
             <a href="#status" class="action-card">
                 <div class="action-icon">💚</div>
-                <div class="action-title">System Status</div>
-                <div class="action-desc">OpenClaw health check</div>
-            </a>
-            <a href="#agents" class="action-card">
-                <div class="action-icon">🤖</div>
-                <div class="action-title">Spawn Agents</div>
-                <div class="action-desc">Create parallel subagents</div>
+                <div class="action-title">Check Status</div>
+                <div class="action-desc">Verify OpenClaw health</div>
             </a>
         </div>
     </section>
 
-    <!-- System Status -->
+    <!-- Real-Time Metrics -->
     <section class="dashboard-section">
         <h2>System Status</h2>
         <div class="status-grid">
@@ -56,14 +76,14 @@
                     <span class="status-icon">✓</span>
                     <span class="status-title">OpenClaw Gateway</span>
                 </div>
-                <div class="status-value">Online</div>
+                <div class="status-value" id="metric-gateway">Loading...</div>
             </div>
             <div class="status-card">
                 <div class="status-header">
                     <span class="status-icon">✓</span>
                     <span class="status-title">Build Status</span>
                 </div>
-                <div class="status-value">Ready</div>
+                <div class="status-value" id="metric-build">Ready</div>
             </div>
             <div class="status-card">
                 <div class="status-header">
@@ -77,7 +97,54 @@
                     <span class="status-icon">⚡</span>
                     <span class="status-title">Models</span>
                 </div>
-                <div class="status-value">GLM-4.7 (primary), OpenRouter (fallback)</div>
+                <div class="status-value">
+                    <span class="model-primary">GLM-4.7</span> (primary)<br>
+                    <span class="model-secondary">OpenRouter</span> (fallback)
+                </div>
+            </div>
+            <div class="status-card">
+                <div class="status-header">
+                    <span class="status-icon">💚</span>
+                    <span class="status-title">Uptime</span>
+                </div>
+                <div class="status-value" id="metric-uptime">Loading...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cron Jobs -->
+    <section class="dashboard-section">
+        <h2>Cron Jobs</h2>
+        <div class="cron-list">
+            <div class="cron-row ok">
+                <div class="cron-status"><span class="cron-icon">✓</span> OK</div>
+                <div class="cron-name">operations-agent-monitoring</div>
+                <div class="cron-time">Every 5 min</div>
+                <div class="cron-summary">System health checks</div>
+            </div>
+            <div class="cron-row ok">
+                <div class="cron-status"><span class="cron-icon">✓</span> OK</div>
+                <div class="cron-name">security-agent-monitoring</div>
+                <div class="cron-time">Every 30 min</div>
+                <div class="cron-summary">Security scan and alerting</div>
+            </div>
+            <div class="cron-row ok">
+                <div class="cron-status"><span class="cron-icon">✓</span> OK</div>
+                <div class="cron-name">daily-ai-report</div>
+                <div class="cron-time">02:00 UTC</div>
+                <div class="cron-summary">Daily AI news compilation</div>
+            </div>
+            <div class="cron-row ok">
+                <div class="cron-status"><span class="cron-icon">✓</span> OK</div>
+                <div class="cron-name">website-auto-commit</div>
+                <div class="cron-time">Every 30 min</div>
+                <div class="cron-summary">Auto-commit website changes</div>
+            </div>
+            <div class="cron-row ok">
+                <div class="cron-status"><span class="cron-icon">✓</span> OK</div>
+                <div class="cron-name">daily-blog-post</div>
+                <div class="cron-time">03:00 UTC</div>
+                <div class="cron-summary">Auto-generate blog posts</div>
             </div>
         </div>
     </section>
@@ -89,7 +156,7 @@
             <div class="agent-card active">
                 <div class="agent-header">
                     <div class="agent-name">Main Agent</div>
-                    <div class="agent-badge active">Active</div>
+                    <div class="agent-badge">Active</div>
                 </div>
                 <div class="agent-meta">
                     <div class="meta-item">
@@ -132,33 +199,76 @@
         <h2>Recent Activity</h2>
         <div class="activity-list">
             <div class="activity-item">
-                <div class="activity-icon">📤</div>
+                <div class="activity-icon">📊</div>
                 <div class="activity-content">
-                    <div class="activity-title">Deployed website</div>
+                    <div class="activity-title">Dashboard Updated</div>
                     <div class="activity-time">Just now</div>
-                    <div class="activity-desc">Fixed code blocks, removed skip-link</div>
+                    <div class="activity-desc">Fixed build.py syntax errors, added interactive page</div>
                 </div>
             </div>
             <div class="activity-item">
                 <div class="activity-icon">⚙️</div>
                 <div class="activity-content">
-                    <div class="activity-title">Configuration updated</div>
-                    <div class="activity-time">2 hours ago</div>
-                    <div class="activity-desc">Added cronjobs for automation</div>
+                    <div class="activity-title">Build System Fixed</div>
+                    <div class="activity-time">Just now</div>
+                    <div class="activity-desc">Rewrote markdown parser, fixed syntax errors</div>
                 </div>
             </div>
             <div class="activity-item">
                 <div class="activity-icon">🤖</div>
                 <div class="activity-content">
-                    <div class="activity-title">Dashboard redesign</div>
-                    <div class="activity-time">In progress</div>
-                    <div class="activity-desc">Simplifying and consolidating components</div>
+                    <div class="activity-title">Configured Telegram Groups</div>
+                    <div class="activity-time">Just now</div>
+                    <div class="activity-desc">Added Duet Company group (-1003800473777) without @mention requirement</div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Load Dashboard Metrics Script -->
+    <script>
+        // Try to load real metrics from data/metrics.json
+        fetch('/data/metrics.json')
+            .then(response => response.json())
+            .then(data => {
+                // Update dashboard timestamp
+                if (data.collected_at) {
+                    document.getElementById('dashboard-timestamp').textContent = data.collected_at;
+                }
+
+                // Update metrics if available
+                if (data.metrics) {
+                    const m = data.metrics;
+                    
+                    // Gateway status
+                    if (m.gateway_status) {
+                        document.getElementById('metric-gateway').textContent = m.gateway_status;
+                    }
+                    
+                    // Build status
+                    if (m.build_status) {
+                        document.getElementById('metric-build').textContent = m.build_status;
+                    }
+                    
+                    // Uptime
+                    if (m.uptime) {
+                        document.getElementById('metric-uptime').textContent = m.uptime;
+                    }
+                    
+                    // Sessions/tokens
+                    if (m.total_sessions !== undefined && m.total_tokens !== undefined) {
+                        // Add session/token metrics if available
+                    }
+                }
+            })
+            .catch(err => {
+                console.log('Could not load metrics:', err);
+                // Keep default "Loading..." or static values
+            });
+    </script>
+
 </main>
 {{ footer }}
+
 </body>
 </html>
