@@ -35,7 +35,6 @@ A simple Python script (~500 lines) that:
 3. Applies templates (nav, footer, base)
 4. Outputs both `.html` and `.md` versions
 
-```python
 def build_post(filepath):
     content = filepath.read_text()
     meta, body = parse_frontmatter(content)
@@ -51,7 +50,6 @@ def build_post(filepath):
     md_path.write_text(add_metadata(body, meta))
 ```
 
-### llms.txt
 
 Inspired by `robots.txt` and `sitemap.xml`, I added `llms.txt` - a simple index for LLMs:
 
