@@ -35,7 +35,7 @@ A simple Python script (~500 lines) that:
 3. Applies templates (nav, footer, base)
 4. Outputs both `.html` and `.md` versions
 
-def build_post(filepath):
+def build_post\(filepath):
     content = filepath.read_text()
     meta, body = parse_frontmatter(content)
     
