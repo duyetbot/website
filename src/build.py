@@ -66,7 +66,20 @@ def parse_frontmatter(content):
 
 def markdown_to_html(text):
     """Simple markdown to HTML conversion."""
-    # Horizontal rules first
+    import html
+
+    # First, protect code blocks by replacing them with placeholders
+    code_blocks = []
+    def save_code_block(match):
+        lang = match.group(1) or ""
+        code = match.group(2)
+        code_blocks.append((lang, code))
+        return f"__CODE_BLOCK_{len(code_blocks)-1}__"
+
+    # Match fenced code blocks with optional language
+    text = re.sub(r"```(\w*)\n(.*?)```", save_code_block, text, flags=re.DOTALL)
+
+    # Horizontal rules
     text = re.sub(r"^---\s*$", r"<hr>", text, flags=re.MULTILINE)
 
     # Headers
@@ -77,11 +90,11 @@ def markdown_to_html(text):
     # Bold
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
 
-    # Italic
-    text = re.sub(r"\*(.+?)\*", r"<em>\1</em>", text)
+    # Italic (but not if it's part of bold)
+    text = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"<em>\1</em>", text)
 
-    # Code
-    text = re.sub(r"`(.+?)`", r"<code>\1</code>", text)
+    # Inline code
+    text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
 
     # Links
     text = re.sub(r"\[(.+?)\]\((.+?)\)", r'<a href="\2">\1</a>', text)
@@ -89,26 +102,97 @@ def markdown_to_html(text):
     # Convert internal .md links to .html
     text = re.sub(r'href="([^"]+)\.md"', r'href="\1.html"', text)
 
-    # Lists
+    # Tables
+    def parse_table(text):
+        lines = text.split("\n")
+        result = []
+        table_lines = []
+        in_table = False
+
+        for line in lines:
+            stripped = line.strip()
+            # Check if line looks like a table row
+            if stripped.startswith("|") and stripped.endswith("|"):
+                if not in_table:
+                    in_table = True
+                    table_lines = []
+                table_lines.append(stripped)
+            else:
+                if in_table:
+                    # End of table, process it
+                    result.append(convert_table(table_lines))
+                    table_lines = []
+                    in_table = False
+                result.append(line)
+
+        if in_table:
+            result.append(convert_table(table_lines))
+
+        return "\n".join(result)
+
+    def convert_table(lines):
+        if len(lines) < 2:
+            return "\n".join(lines)
+
+        html_table = ["<table>"]
+        for i, line in enumerate(lines):
+            cells = [c.strip() for c in line.strip("|").split("|")]
+            # Skip separator row (contains only dashes and pipes)
+            if i == 1 and all(set(c.strip()) <= {"-", ":"} for c in cells):
+                continue
+            tag = "th" if i == 0 else "td"
+            row = "<tr>" + "".join(f"<{tag}>{c}</{tag}>" for c in cells) + "</tr>"
+            html_table.append(row)
+        html_table.append("</table>")
+        return "\n".join(html_table)
+
+    text = parse_table(text)
+
+    # Blockquotes
     lines = text.split("\n")
-    in_list = False
     result = []
+    in_blockquote = False
+    blockquote_content = []
+
     for line in lines:
-        if line.startswith("- "):
+        if line.startswith("> "):
+            if not in_blockquote:
+                in_blockquote = True
+                blockquote_content = []
+            blockquote_content.append(line[2:])
+        else:
+            if in_blockquote:
+                result.append("<blockquote>" + " ".join(blockquote_content) + "</blockquote>")
+                blockquote_content = []
+                in_blockquote = False
+            result.append(line)
+
+    if in_blockquote:
+        result.append("<blockquote>" + " ".join(blockquote_content) + "</blockquote>")
+
+    text = "\n".join(result)
+
+    # Lists (improved)
+    lines = text.split("\n")
+    result = []
+    in_list = False
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("- ") or stripped.startswith("* "):
             if not in_list:
                 result.append("<ul>")
                 in_list = True
-        elif not in_list and line.strip() == "":
-            result.append("</ul>")
-            in_list = False
-        if line.startswith("- "):
-            result.append(f"<li>{line[2:]}</li>")
+            result.append(f"<li>{stripped[2:]}</li>")
         else:
             if in_list:
-                result.append(line)
-            elif line.strip():
-                result.append(line)
-    
+                result.append("</ul>")
+                in_list = False
+            result.append(line)
+
+    if in_list:
+        result.append("</ul>")
+
     text = "\n".join(result)
 
     # Paragraphs - treat inline tags as part of paragraph
@@ -116,7 +200,7 @@ def markdown_to_html(text):
     current = []
     for line in text.split("\n"):
         stripped = line.strip()
-        
+
         # Check for block elements
         is_block = (stripped.startswith("<hr>") or
                    stripped.startswith("<h1>") or
@@ -125,9 +209,20 @@ def markdown_to_html(text):
                    stripped.startswith("<ul>") or
                    stripped.startswith("</ul>") or
                    stripped.startswith("<li>") or
-                   stripped.startswith("</li>"))
-        
-        if is_block:
+                   stripped.startswith("</li>") or
+                   stripped.startswith("<table>") or
+                   stripped.startswith("</table>") or
+                   stripped.startswith("<tr>") or
+                   stripped.startswith("</tr>") or
+                   stripped.startswith("<blockquote>") or
+                   stripped.startswith("</blockquote>") or
+                   stripped.startswith("<pre>") or
+                   stripped.startswith("</pre>"))
+
+        # Check for code block placeholder
+        is_code_block = stripped.startswith("__CODE_BLOCK_")
+
+        if is_block or is_code_block:
             if current:
                 paragraphs.append("<p>" + " ".join(current) + "</p>")
                 current = []
@@ -138,11 +233,18 @@ def markdown_to_html(text):
             if current:
                 paragraphs.append("<p>" + " ".join(current) + "</p>")
                 current = []
-    
+
     if current:
         paragraphs.append("<p>" + " ".join(current) + "</p>")
 
     text = "\n".join(paragraphs)
+
+    # Restore code blocks
+    for i, (lang, code) in enumerate(code_blocks):
+        escaped_code = html.escape(code.rstrip())
+        lang_class = f' class="language-{lang}"' if lang else ""
+        code_html = f"<pre><code{lang_class}>{escaped_code}</code></pre>"
+        text = text.replace(f"__CODE_BLOCK_{i}__", code_html)
 
     return text
 
