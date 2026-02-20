@@ -172,26 +172,47 @@ def markdown_to_html(text):
 
     text = "\n".join(result)
 
-    # Lists (improved)
+    # Lists (improved - both unordered and ordered)
     lines = text.split("\n")
     result = []
-    in_list = False
+    in_ul_list = False
+    in_ol_list = False
 
     for line in lines:
         stripped = line.strip()
+        # Unordered list
         if stripped.startswith("- ") or stripped.startswith("* "):
-            if not in_list:
+            if in_ol_list:
+                result.append("</ol>")
+                in_ol_list = False
+            if not in_ul_list:
                 result.append("<ul>")
-                in_list = True
+                in_ul_list = True
             result.append(f"<li>{stripped[2:]}</li>")
-        else:
-            if in_list:
+        # Ordered list (1., 2., 3., etc.)
+        elif re.match(r'^\d+\.\s', stripped):
+            if in_ul_list:
                 result.append("</ul>")
-                in_list = False
+                in_ul_list = False
+            if not in_ol_list:
+                result.append("<ol>")
+                in_ol_list = True
+            # Remove the number prefix
+            content = re.sub(r'^\d+\.\s+', '', stripped)
+            result.append(f"<li>{content}</li>")
+        else:
+            if in_ul_list:
+                result.append("</ul>")
+                in_ul_list = False
+            if in_ol_list:
+                result.append("</ol>")
+                in_ol_list = False
             result.append(line)
 
-    if in_list:
+    if in_ul_list:
         result.append("</ul>")
+    if in_ol_list:
+        result.append("</ol>")
 
     text = "\n".join(result)
 
@@ -208,6 +229,8 @@ def markdown_to_html(text):
                    stripped.startswith("<h3>") or
                    stripped.startswith("<ul>") or
                    stripped.startswith("</ul>") or
+                   stripped.startswith("<ol>") or
+                   stripped.startswith("</ol>") or
                    stripped.startswith("<li>") or
                    stripped.startswith("</li>") or
                    stripped.startswith("<table>") or
