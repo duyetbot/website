@@ -147,15 +147,13 @@ body {
 
 .hero-badge {
     display: inline-block;
-    background: color-mix(in oklch, var(--color-accent), var(--color-secondary));
+    background: var(--color-accent);
     color: white;
     padding: 0.5rem 1rem;
-    border-radius: 20px;
+    border-radius: 4px;
     font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 1.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .hero-title {
@@ -166,13 +164,6 @@ body {
     margin-bottom: 0.5rem;
     letter-spacing: -0.02em;
     text-wrap: balance; /* Balanced headlines */
-}
-
-.gradient-text {
-    background: linear-gradient(135deg, var(--color-accent), var(--color-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .hero-subtitle {
@@ -199,10 +190,10 @@ body {
     display: inline-flex;
     align-items: center;
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+    border-radius: 4px;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: color 0.15s, background-color 0.15s, border-color 0.15s;
     border: 2px solid transparent;
 }
 
@@ -213,8 +204,6 @@ body {
 
 .btn-primary:hover {
     background: var(--color-accent-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px color-mix(in oklch, var(--color-accent), transparent 80%);
 }
 
 .btn-secondary {
@@ -226,7 +215,6 @@ body {
 .btn-secondary:hover {
     background: var(--color-accent);
     color: white;
-    transform: translateY(-2px);
 }
 
 .hero h1 {
@@ -305,9 +293,7 @@ body {
 
 .what-i-do h2 {
     font-family: var(--font-display);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
     color: var(--color-muted);
     margin-bottom: 1.5rem;
     font-weight: 400;
@@ -323,14 +309,12 @@ body {
     background: var(--color-card-bg);
     padding: 1.5rem;
     border: 1px solid var(--color-border);
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    border-radius: 0;
+    transition: border-color 0.15s;
 }
 
 .card:hover {
-    transform: translateY(-4px);
     border-color: var(--color-accent);
-    box-shadow: 0 20px 40px color-mix(in oklch, var(--color-accent), transparent 85%);
 }
 
 /* Modern CSS: Nested selectors */
@@ -362,9 +346,7 @@ body {
 
 .metrics-section h2 {
     font-family: var(--font-display);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
     color: var(--color-muted);
     margin-bottom: 1.5rem;
     font-weight: 400;
@@ -380,14 +362,13 @@ body {
     background: var(--color-card-bg);
     border: 1px solid var(--color-border);
     padding: 1.25rem;
-    border-radius: 12px;
+    border-radius: 0;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: border-color 0.15s;
 }
 
 .metric-card:hover {
     border-color: var(--color-accent);
-    transform: translateY(-2px);
 }
 
 .metric-label {
@@ -417,9 +398,7 @@ body {
 
 .recent-posts h2 {
     font-family: var(--font-display);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
     color: var(--color-muted);
     margin-bottom: 1.5rem;
     font-weight: 400;
@@ -446,9 +425,7 @@ body {
 
 .links-section h2 {
     font-family: var(--font-display);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
     color: var(--color-muted);
     margin-bottom: 1.5rem;
     font-weight: 400;
@@ -467,14 +444,13 @@ body {
     padding: 1.25rem;
     background: var(--color-card-bg);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    border-radius: 0;
+    transition: border-color 0.15s, background-color 0.15s;
 }
 
 .link-card:hover {
     border-color: var(--color-accent);
     background: var(--color-code-bg);
-    transform: translateY(-2px);
 }
 
 /* Tags */
@@ -489,7 +465,7 @@ body {
     background: var(--color-code-bg);
     color: var(--color-muted);
     padding: 0.25rem 0.75rem;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 500;
     border: 1px solid var(--color-border);
@@ -502,9 +478,7 @@ body {
 
 .posts h2 {
     font-family: var(--font-display);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
     color: var(--color-muted);
     margin-bottom: 2rem;
     font-weight: 400;
@@ -813,9 +787,7 @@ pre code {
 
 .activity-section h2 {
     font-family: var(--font-display);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
     color: var(--color-muted);
     margin-bottom: 1.5rem;
     font-weight: 400;
@@ -869,9 +841,7 @@ pre code {
 
 .cron-section h2 {
     font-family: var(--font-display);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
     color: var(--color-muted);
     margin-bottom: 1.5rem;
     font-weight: 400;

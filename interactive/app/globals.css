@@ -45,12 +45,6 @@
     text-wrap: balance;
   }
 
-  /* Smooth transitions */
-  * {
-    transition-property: color, background-color, border-color;
-    transition-duration: 150ms;
-    transition-timing-function: ease-in-out;
-  }
 }
 
 @layer components {
@@ -101,36 +95,4 @@
 }
 
 @layer utilities {
-  /* Animation utilities */
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
-  }
-
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes slideUp {
-    from {
-      transform: translateY(10px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
 }
