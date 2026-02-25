@@ -729,10 +729,12 @@ def build_home(posts):
         except Exception:
             pass
 
+    # Get summary with defaults
+    summary = metrics_data.get('summary', {})
+
     # Generate metrics HTML
     metrics_html = ""
-    if metrics_data.get('summary'):
-        summary = metrics_data['summary']
+    if summary:
         metrics_html = f"""
 <section class="metrics-section">
     <h2>Activity Metrics</h2>
