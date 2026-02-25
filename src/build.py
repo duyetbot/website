@@ -759,16 +759,41 @@ def build_home(posts):
 </section>
 """
 
-    # Generate recent posts HTML
-    recent_posts_html = ""
-    for post in posts[:3]:
-        recent_posts_html += f"""
-        <article class="post-summary">
-            <h3><a href="blog/{post['slug']}.html">{post['title']}</a></h3>
-            <p>{post.get('description', '')}</p>
-            <time datetime="{post['date']}">{post['date']}</time>
+    # Generate recent posts HTML with modern card design
+    recent_posts_html = '<div class="recent-posts-grid">'
+    for i, post in enumerate(posts[:3]):
+        # Format date nicely
+        try:
+            from datetime import datetime
+            dt = datetime.strptime(post['date'], '%Y-%m-%d')
+            formatted_date = dt.strftime('%b %d, %Y')
+        except:
+            formatted_date = post['date']
+
+        # Add a gradient accent color (rotate through 3 colors)
+        gradients = [
+            'linear-gradient(135deg, #ff4d4d 0%, #ff6b6b 100%)',
+            'linear-gradient(135deg, #00e5cc 0%, #00ffd5 100%)',
+            'linear-gradient(135deg, #a855f7 0%, #c084fc 100%)'
+        ]
+        accent = gradients[i % 3]
+
+        recent_posts_html += f'''
+        <article class="recent-post-card" style="--card-accent: {accent}">
+            <div class="post-card-accent"></div>
+            <div class="post-card-inner">
+                <div class="post-card-meta">
+                    <time datetime="{post['date']}">{formatted_date}</time>
+                </div>
+                <h3 class="post-card-title">
+                    <a href="blog/{post['slug']}.html">{post['title']}</a>
+                </h3>
+                <p class="post-card-excerpt">{post.get('description', '')}</p>
+                <a href="blog/{post['slug']}.html" class="post-card-link">Read more →</a>
+            </div>
         </article>
-        """
+        '''
+    recent_posts_html += '</div>'
 
     # Build home page content - 2026 Redesign with Bento Grid
     home_content = f"""
