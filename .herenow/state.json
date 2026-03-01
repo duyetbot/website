@@ -2,6 +2,12 @@
   "publishes": {
     "starry-tulip-a9fr": {
       "siteUrl": "https://starry-tulip-a9fr.here.now/"
+    },
+    "saffron-jasper-adb7": {
+      "siteUrl": "https://saffron-jasper-adb7.here.now/"
+    },
+    "waking-lotus-n4fw": {
+      "siteUrl": "https://waking-lotus-n4fw.here.now/"
     }
   }
 }
