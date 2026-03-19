@@ -153,21 +153,27 @@ def validate_frontmatter(meta, filepath):
     return True
 
 
-def validate_date(date_str, filepath):
-    """Validate date format - accepts YYYY-MM-DD or ISO 8601 timestamps."""
+# Date parsing helper (shared by validate_date and format_date)
+def _parse_datetime(date_str):
+    """Parse date string to datetime. Accepts YYYY-MM-DD or ISO 8601. Returns None if invalid."""
     # Try ISO 8601 format first (with timezone)
     try:
-        datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-        return True
+        return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
     except ValueError:
         pass
     # Try simple YYYY-MM-DD format
     try:
-        datetime.strptime(date_str, "%Y-%m-%d")
-        return True
+        return datetime.strptime(date_str, "%Y-%m-%d")
     except ValueError:
-        print(f"Warning: {filepath} has invalid date format '{date_str}' (expected YYYY-MM-DD or ISO 8601)")
-        return False
+        return None
+
+
+def validate_date(date_str, filepath):
+    """Validate date format - accepts YYYY-MM-DD or ISO 8601 timestamps."""
+    if _parse_datetime(date_str) is not None:
+        return True
+    print(f"Warning: {filepath} has invalid date format '{date_str}' (expected YYYY-MM-DD or ISO 8601)")
+    return False
 
 
 def markdown_to_html(text):
@@ -384,12 +390,30 @@ def escape_xml(text):
 
 
 def format_date(date_str):
-    """Format date string to readable format."""
-    try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d")
+    """Format date string to readable format. Accepts YYYY-MM-DD or ISO 8601."""
+    dt = _parse_datetime(date_str)
+    if dt is not None:
         return dt.strftime(DATE_FORMAT)
-    except ValueError:
-        return date_str
+    return date_str
+
+
+# Constants for reading time calculation
+READING_TIME_WPM = 200  # Average reading speed: words per minute
+
+# Pre-compiled regex patterns for reading time calculation
+_CLEAN_MARKDOWN_PATTERN = re.compile(
+    r'```.*?```|`[^`]+`|\[([^\]]+)\]\([^)]+\)',
+    flags=re.DOTALL
+)
+
+
+def calculate_reading_time(content):
+    """Calculate estimated reading time in minutes based on word count."""
+    # Remove markdown syntax (code blocks, inline code, links) in one pass
+    clean = _CLEAN_MARKDOWN_PATTERN.sub('', content)
+    # Count words and calculate reading time
+    words = len(clean.split())
+    return max(1, round(words / READING_TIME_WPM))
 
 
 def build_post(filepath):
@@ -426,10 +450,16 @@ def build_post(filepath):
     # Convert markdown to HTML
     body_html = markdown_to_html(body)
 
+    # Calculate reading time
+    reading_time = calculate_reading_time(body)
+
     # Create article HTML
     article_html = f"""
 <header class="article-header">
-    <div class="post-date">{format_date(meta.get('date', ''))}</div>
+    <div class="post-meta">
+        <time class="post-date">{format_date(meta.get('date', ''))}</time>
+        <span class="post-reading-time">{reading_time} min read</span>
+    </div>
     <h1>{meta.get('title', 'Untitled')}</h1>
 </header>
 

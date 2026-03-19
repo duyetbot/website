@@ -359,6 +359,29 @@ section h2 {
     color: var(--text-main);
 }
 
+.post-meta {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    margin-bottom: var(--space-sm);
+}
+
+.post-date {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.post-reading-time {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 0.1em 0.5em;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+}
+
 .article-content {
     font-size: 1.05rem;
     line-height: 1.7;
