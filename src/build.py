@@ -213,8 +213,11 @@ def validate_date(date_str, filepath):
 
 
 def markdown_to_html(text):
-    """Simple markdown to HTML conversion."""
+    """Simple markdown to HTML conversion. Returns (html, toc_data)."""
     import html
+
+    # Track headers for TOC generation
+    headers = []
 
     # First, protect code blocks by replacing them with placeholders
     code_blocks = []
@@ -230,10 +233,17 @@ def markdown_to_html(text):
     # Horizontal rules
     text = re.sub(r"^---\s*$", r"<hr>", text, flags=re.MULTILINE)
 
-    # Headers
-    text = re.sub(r"^### (.+)$", r"<h3>\1</h3>", text, flags=re.MULTILINE)
-    text = re.sub(r"^## (.+)$", r"<h2>\1</h2>", text, flags=re.MULTILINE)
-    text = re.sub(r"^# (.+)$", r"<h1>\1</h1>", text, flags=re.MULTILINE)
+    # Headers - add IDs and track for TOC (unified pattern for efficiency)
+    def process_header(match):
+        hashes, title = match.groups()
+        level = len(hashes)
+        slug = _slugify(title)
+        # Track for TOC (skip h1 as it's the post title, already shown)
+        if level > 1:
+            headers.append((level, title, slug))
+        return f'<h{level} id="{slug}">{title}</h{level}>'
+
+    text = _HEADER_PATTERN.sub(process_header, text)
 
     # Bold
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
@@ -370,11 +380,10 @@ def markdown_to_html(text):
     for line in text.split("\n"):
         stripped = line.strip()
 
-        # Check for block elements
-        is_block = (stripped.startswith("<hr>") or
-                   stripped.startswith("<h1>") or
-                   stripped.startswith("<h2>") or
-                   stripped.startswith("<h3>") or
+        # Check for block elements (use pre-compiled regex for headers with id attributes)
+        is_header = bool(_HEADER_BLOCK_PATTERN.match(stripped))
+        is_block = (is_header or
+                   stripped.startswith("<hr>") or
                    stripped.startswith("<ul>") or
                    stripped.startswith("</ul>") or
                    stripped.startswith("<ol>") or
@@ -417,12 +426,51 @@ def markdown_to_html(text):
         code_html = f"<pre><code{lang_class}>{escaped_code}</code></pre>"
         text = text.replace(f"__CODE_BLOCK_{i}__", code_html)
 
-    return text
+    return text, headers
+
+
+# Pre-compiled regex patterns for efficiency
+_SLUGIFY_PATTERN = re.compile(r'[^a-z0-9]+')
+_HEADER_BLOCK_PATTERN = re.compile(r'<h[1-6][\s>]')
+_HEADER_PATTERN = re.compile(r'^(#{1,3}) (.+)$', flags=re.MULTILINE)
+
+
+def _slugify(text):
+    """Convert text to URL-safe slug for header IDs. Optimized single-pass."""
+    text = text.lower()
+    text = _SLUGIFY_PATTERN.sub('-', text)
+    return text.strip('-')
 
 
 def escape_xml(text):
     """Escape XML special characters for RSS feeds."""
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def generate_toc_html(headers):
+    """Generate table of contents HTML from headers list.
+
+    Args:
+        headers: List of (level, text, slug) tuples
+
+    Returns:
+        HTML string with TOC, or empty string if no headers
+    """
+    if not headers:
+        return ""
+
+    items = []
+    for level, text, slug in headers:
+        # Guard against edge case: h2 (level=2) gets no indent, h3 gets 2-space
+        indent = "  " * max(0, level - 2)
+        items.append(f'{indent}<li><a href="#{slug}">{text}</a></li>')
+
+    return f"""<nav class="toc" aria-label="Table of Contents">
+    <h2>Table of Contents</h2>
+    <ul>
+{"\n".join(items)}
+    </ul>
+</nav>"""
 
 
 def generate_json_ld_article(meta, url, reading_time=None):
@@ -574,11 +622,14 @@ def build_post(filepath):
         print(f"Error: base.html template missing, cannot build {filepath}")
         return None
 
-    # Convert markdown to HTML
-    body_html = markdown_to_html(body)
+    # Convert markdown to HTML and extract headers for TOC
+    body_html, headers = markdown_to_html(body)
 
     # Calculate reading time
     reading_time = calculate_reading_time(body)
+
+    # Generate table of contents if we have h2/h3 headers
+    toc_html = generate_toc_html(headers)
 
     # Create article HTML
     article_html = f"""
@@ -589,6 +640,8 @@ def build_post(filepath):
     </div>
     <h1>{meta.get('title', 'Untitled')}</h1>
 </header>
+
+{toc_html}
 
 <article class="article-content">
 {body_html}
