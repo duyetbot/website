@@ -127,6 +127,11 @@ OG_IMAGE_URL = f"{SITE_URL}/og-image.png"
 # Cached website JSON-LD (generated once, reused for all pages)
 _JSON_LD_WEBSITE_CACHE = None
 
+# Pre-compiled regex patterns for CSS minification
+_CSS_COMMENT_PATTERN = re.compile(r'/\*[^*]*\*+(?:[^/*][^*]*\*+)*/')
+_CSS_WHITESPACE_PATTERN = re.compile(r'\s*([{}:;,>~+])\s*')
+_CSS_TRAILING_SEMICOLON_PATTERN = re.compile(r';}')
+
 
 def _get_json_ld_publisher(include_logo=False):
     """Get publisher/organization structure for JSON-LD."""
@@ -1053,17 +1058,51 @@ Append .md to any URL to get the markdown version.
     print("Built: llms.txt")
 
 
+def minify_css(css_content):
+    """Simple CSS minifier - removes comments, extra whitespace, and unnecessary semicolons."""
+    if not isinstance(css_content, str):
+        return ""
+
+    try:
+        # Remove comments
+        css_content = _CSS_COMMENT_PATTERN.sub('', css_content)
+
+        # Remove extra whitespace around special characters (and newlines)
+        css_content = _CSS_WHITESPACE_PATTERN.sub(r'\1', css_content)
+
+        # Remove trailing semicolon before closing brace
+        css_content = _CSS_TRAILING_SEMICOLON_PATTERN.sub('}', css_content)
+
+        return css_content.strip()
+    except Exception as e:
+        print(f"Warning: CSS minification failed: {e}. Using original CSS.")
+        return css_content
+
+
 def copy_assets():
-    """Copy static assets to build directory."""
+    """Copy static assets to build directory with optional minification."""
     try:
         # Ensure CSS output directory exists
         CSS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-        # Copy CSS
+        # Copy and minify CSS
         css_src = CSS_DIR / "style.css"
         if css_src.exists():
-            shutil.copy(css_src, CSS_OUTPUT_DIR / "style.css")
+            css_content = css_src.read_text()
+
+            # Write original CSS (for development/debugging)
+            (CSS_OUTPUT_DIR / "style.css").write_text(css_content)
             print("Copied: css/style.css")
+
+            # Write minified CSS (for production)
+            css_minified = minify_css(css_content)
+            (CSS_OUTPUT_DIR / "style.min.css").write_text(css_minified)
+
+            # Calculate size reduction
+            original_size = len(css_content)
+            minified_size = len(css_minified)
+            reduction = (1 - minified_size / original_size) * 100
+            print(f"Minified: css/style.min.css ({reduction:.0f}% reduction)")
         else:
             print("Warning: style.css not found")
 
