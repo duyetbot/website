@@ -426,7 +426,7 @@ def escape_xml(text):
 
 
 def generate_json_ld_article(meta, url, reading_time=None):
-    """Generate JSON-LD structured data for blog articles (Article schema)."""
+    """Generate JSON-LD structured data for blog articles (Article schema with BreadcrumbList)."""
     date_str = meta.get('date', '')
     dt = _parse_datetime(date_str)
 
@@ -438,6 +438,13 @@ def generate_json_ld_article(meta, url, reading_time=None):
             iso_date = dt.isoformat()
     else:
         iso_date = date_str
+
+    # Build breadcrumb list: Home → Blog → Post
+    breadcrumbs = [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": f"{SITE_URL}/blog/"},
+        {"@type": "ListItem", "position": 3, "name": meta.get('title', 'Untitled'), "item": url}
+    ]
 
     data = {
         "@context": SCHEMA_CONTEXT,
@@ -452,6 +459,10 @@ def generate_json_ld_article(meta, url, reading_time=None):
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": url
+        },
+        "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": breadcrumbs
         }
     }
 
