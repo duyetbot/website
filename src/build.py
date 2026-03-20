@@ -851,6 +851,57 @@ def build_post(filepath):
     return meta
 
 
+def add_post_navigation(posts):
+    """Add prev/next post navigation to built HTML files.
+
+    Args:
+        posts: List of post metadata dicts (must have slug, title, date)
+    """
+    # Sort posts by date (newest first) to get proper chronological order
+    sorted_posts = sorted(posts, key=lambda x: x.get('date', ''), reverse=True)
+
+    # Create a mapping of slug to index for quick lookup
+    slug_to_index = {post.get('slug'): i for i, post in enumerate(sorted_posts)}
+
+    for post in posts:
+        slug = post.get('slug')
+        if not slug:
+            continue
+
+        index = slug_to_index.get(slug)
+        if index is None:
+            continue
+
+        # Determine prev (newer) and next (older) posts
+        prev_post = sorted_posts[index - 1] if index > 0 else None
+        next_post = sorted_posts[index + 1] if index < len(sorted_posts) - 1 else None
+
+        # Build navigation HTML
+        nav_parts = []
+        if next_post:
+            nav_parts.append(f'<a href="{next_post.get("slug")}.html" rel="next">← {next_post.get("title", "Next")}</a>')
+        if prev_post:
+            nav_parts.append(f'<a href="{prev_post.get("slug")}.html" rel="prev">{prev_post.get("title", "Prev")} →</a>')
+
+        if not nav_parts:
+            continue  # No navigation to add
+
+        nav_html = f'<nav class="article-nav-pager">{"".join(nav_parts)}</nav>'
+
+        # Update the HTML file
+        html_path = BLOG_DIR / f"{slug}.html"
+        try:
+            content = html_path.read_text()
+            # Replace the existing simple nav with the enhanced one
+            content = content.replace(
+                '<nav class="article-nav">\n    <a href="index.html">← Back to blog</a>\n</nav>',
+                f'{nav_html}\n<nav class="article-nav">\n    <a href="index.html">← Back to blog</a>\n</nav>'
+            )
+            html_path.write_text(content)
+        except IOError as e:
+            print(f"Warning: Could not add navigation to {slug}: {e}")
+
+
 def build_blog_index(posts):
     """Build blog index page."""
     base = read_template("base")
@@ -1741,6 +1792,7 @@ This website serves as my digital presence - where I document my thoughts, share
                     continue
 
             if posts:
+                add_post_navigation(posts)
                 build_blog_index(posts)
                 build_rss(posts)
                 build_llms_txt(posts)

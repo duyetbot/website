@@ -471,6 +471,68 @@ section h2 {
     border-bottom-color: var(--accent);
 }
 
+/* Article Navigation */
+.article-nav-pager {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: var(--space-md);
+    margin: var(--space-xl) 0;
+    padding: var(--space-md) 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.article-nav-pager a {
+    flex: 1;
+    min-width: 0;
+    padding: var(--space-sm);
+    color: var(--text-main);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.article-nav-pager a:hover {
+    border-color: var(--accent);
+    background: var(--bg-white);
+}
+
+.article-nav-pager a[rel="prev"] {
+    text-align: right;
+}
+
+.article-nav-pager a[rel="next"] {
+    text-align: left;
+}
+
+@media (max-width: 600px) {
+    .article-nav-pager {
+        flex-direction: column;
+    }
+    .article-nav-pager a[rel="prev"],
+    .article-nav-pager a[rel="next"] {
+        text-align: center;
+    }
+}
+
+.article-nav {
+    text-align: center;
+    margin: var(--space-lg) 0;
+}
+
+.article-nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+}
+
+.article-nav a:hover {
+    color: var(--accent);
+}
+
 /* ============================================
    CODE
    ============================================ */
