@@ -518,8 +518,8 @@ def generate_json_ld_article(meta, url, reading_time=None):
     """Generate JSON-LD structured data for blog articles (Article schema with BreadcrumbList)."""
     # Use cached parsed datetime if available (avoid re-parsing)
     dt = meta.get('_parsed_dt')
+    date_str = meta.get('date', '')
     if dt is None:
-        date_str = meta.get('date', '')
         dt = _parse_datetime(date_str)
 
     # Ensure timezone-aware ISO 8601 format (append UTC if naive)
@@ -529,21 +529,25 @@ def generate_json_ld_article(meta, url, reading_time=None):
         else:
             iso_date = dt.isoformat()
     else:
-        iso_date = meta.get('date', '')
+        iso_date = date_str
+
+    # Extract commonly used meta values
+    title = meta.get('title', 'Untitled')
+    description = meta.get('description', '')
 
     # Build breadcrumb list: Home → Blog → Post
     breadcrumbs = [
         {"@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL},
         {"@type": "ListItem", "position": 2, "name": "Blog", "item": f"{SITE_URL}/blog/"},
-        {"@type": "ListItem", "position": 3, "name": meta.get('title', 'Untitled'), "item": url}
+        {"@type": "ListItem", "position": 3, "name": title, "item": url}
     ]
 
     data = {
         "@context": SCHEMA_CONTEXT,
         "@type": "Article",
-        "headline": meta.get('title', 'Untitled'),
+        "headline": title,
         "url": url,
-        "description": meta.get('description', ''),
+        "description": description,
         "datePublished": iso_date,
         "dateModified": iso_date,
         "author": _get_json_ld_publisher(include_logo=False),
@@ -565,7 +569,7 @@ def generate_json_ld_article(meta, url, reading_time=None):
         json_str = json.dumps(data, ensure_ascii=False)
         return f'<script type="application/ld+json">{json_str}</script>'
     except (TypeError, ValueError) as e:
-        print(f"Warning: Failed to generate JSON-LD for {meta.get('title', 'unknown')}: {e}")
+        print(f"Warning: Failed to generate JSON-LD for {title}: {e}")
         return ""
 
 
