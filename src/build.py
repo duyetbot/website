@@ -124,6 +124,10 @@ RSS_PREVIEW_LINES = 10
 SCHEMA_CONTEXT = "https://schema.org"
 OG_IMAGE_URL = f"{SITE_URL}/og-image.png"
 
+# Common file paths
+METRICS_FILE = DATA_DIR / "metrics.json"
+SOUL_MD_FILE = BASE_DIR / "content/SOUL.md"
+
 # Prism.js configuration
 _PRISM_VERSION = "1.29.0"
 _PRISM_CDN_BASE = f"https://cdnjs.cloudflare.com/ajax/libs/prism/{_PRISM_VERSION}"
@@ -790,7 +794,7 @@ def build_dashboard():
     nav, footer = _get_common_components(root="../")
 
     # Check for metrics file
-    metrics_file = DATA_DIR / "metrics.json"
+    metrics_file = METRICS_FILE
     metrics_data = {}
     dashboard_content = None
 
@@ -926,7 +930,7 @@ def build_pages(pages):
         try:
             if page_name == "soul":
                 # Soul page reads from SOUL.md
-                soul_path = BASE_DIR / "content/SOUL.md"
+                soul_path = SOUL_MD_FILE
                 if soul_path.exists():
                     content = soul_path.read_text()
                 else:
@@ -999,7 +1003,7 @@ def build_pages(pages):
         print(f"Built: {html_path.name}")
 
         # Write MD for all pages with content files or about/soul
-        if page_name == "soul" and (BASE_DIR / "content/SOUL.md").exists():
+        if page_name == "soul" and SOUL_MD_FILE.exists():
             md_path = OUTPUT_DIR / f"{page_name}.md"
             md_content = (BASE_DIR / "content/SOUL.md").read_text()
             md_path.write_text(md_content)
