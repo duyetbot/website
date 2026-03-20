@@ -105,6 +105,7 @@ SITE_URL = CONFIG["site"]["url"]
 SITE_NAME = CONFIG["site"]["name"]
 SITE_AUTHOR = CONFIG["site"]["author"]
 SITE_DESCRIPTION = CONFIG["site"]["description"]
+AUTHOR_EMAIL = CONFIG["site"].get("email", "noreply@bot.duyet.net")
 
 # Required frontmatter fields for blog posts
 REQUIRED_FRONTMATTER = set(CONFIG["frontmatter"]["required"])
@@ -489,6 +490,29 @@ def escape_xml(text):
                 .replace('"', "&quot;"))
 
 
+def parse_tags(tags):
+    """Parse tags from simple YAML format into a clean list.
+
+    The simple YAML parser stores lists as string representations like
+    '["tag1", "tag2"]'. This function normalizes them to actual lists.
+
+    Args:
+        tags: Tags from frontmatter (str, list, or other)
+
+    Returns:
+        List of tag strings
+    """
+    if not tags:
+        return []
+
+    if isinstance(tags, str):
+        # Remove brackets, quotes, and split by comma
+        return [t.strip().strip('"\'') for t in tags.strip("[]").split(",") if t.strip()]
+    elif isinstance(tags, list):
+        return tags
+    return []
+
+
 def build_post_meta_html(date_str, parsed_dt, reading_time=None):
     """Build post meta HTML with date and optional reading time.
 
@@ -590,14 +614,9 @@ def generate_json_ld_article(meta, url, reading_time=None, word_count=None):
         data["wordCount"] = word_count
 
     if tags:
-        # Handle tags from simple YAML parser (may be string representation of list)
-        if isinstance(tags, str):
-            # Remove brackets, quotes, and split by comma
-            cleaned = tags.strip("[]").replace('"', '').replace("'", "")
-            keywords = ", ".join(t.strip() for t in cleaned.split(",") if t.strip())
-        else:
-            keywords = ", ".join(tags) if isinstance(tags, list) else tags
-        data["keywords"] = keywords
+        tag_list = parse_tags(tags)
+        if tag_list:
+            data["keywords"] = ", ".join(tag_list)
 
     try:
         json_str = json.dumps(data, ensure_ascii=False)
@@ -1161,6 +1180,7 @@ def build_rss(posts):
     <link>{SITE_URL}/</link>
     <description>{SITE_DESCRIPTION}</description>
     <language>en-us</language>
+    <managingEditor>{escape_xml(AUTHOR_EMAIL)}</managingEditor>
     <atom:link href="{SITE_URL}/rss.xml" rel="self" type="application/rss+xml">
 """
 
@@ -1185,6 +1205,15 @@ def build_rss(posts):
         else:
             pub_date = f"{date_str}T00:00:00+00:00"
 
+        # Add category elements for tags
+        tags = meta.get('tags', '')
+        tag_list = parse_tags(tags)
+        categories = "\n".join(f'        <category>{escape_xml(tag)}</category>' for tag in tag_list)
+        if categories:
+            categories += "\n"
+
+        author_element = f"        <author>{escape_xml(AUTHOR_EMAIL)}</author>\n"
+
         rss += f"""
     <item>
         <title>{escape_xml(title)}</title>
@@ -1192,6 +1221,7 @@ def build_rss(posts):
         <description>{description}</description>
         <pubDate>{pub_date}</pubDate>
         <guid>{SITE_URL}/blog/{slug}.html</guid>
+{categories}{author_element}
         {content_encoded}
     </item>
 """
