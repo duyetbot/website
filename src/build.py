@@ -513,8 +513,11 @@ def generate_toc_html(headers):
 
 def generate_json_ld_article(meta, url, reading_time=None):
     """Generate JSON-LD structured data for blog articles (Article schema with BreadcrumbList)."""
-    date_str = meta.get('date', '')
-    dt = _parse_datetime(date_str)
+    # Use cached parsed datetime if available (avoid re-parsing)
+    dt = meta.get('_parsed_dt')
+    if dt is None:
+        date_str = meta.get('date', '')
+        dt = _parse_datetime(date_str)
 
     # Ensure timezone-aware ISO 8601 format (append UTC if naive)
     if dt:
@@ -523,7 +526,7 @@ def generate_json_ld_article(meta, url, reading_time=None):
         else:
             iso_date = dt.isoformat()
     else:
-        iso_date = date_str
+        iso_date = meta.get('date', '')
 
     # Build breadcrumb list: Home → Blog → Post
     breadcrumbs = [
