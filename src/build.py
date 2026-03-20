@@ -597,9 +597,18 @@ def generate_json_ld_website():
         return ""
 
 
-def format_date(date_str):
-    """Format date string to readable format. Accepts YYYY-MM-DD or ISO 8601."""
-    dt = _parse_datetime(date_str)
+def format_date(date_str, dt=None):
+    """Format date string to readable format. Accepts YYYY-MM-DD or ISO 8601.
+
+    Args:
+        date_str: Date string in YYYY-MM-DD or ISO 8601 format
+        dt: Optional pre-parsed datetime object for efficiency
+
+    Returns:
+        Formatted date string or original date_str if parsing fails
+    """
+    if dt is None:
+        dt = _parse_datetime(date_str)
     if dt is not None:
         return dt.strftime(DATE_FORMAT)
     return date_str
@@ -668,11 +677,14 @@ def build_post(filepath):
     # Generate table of contents if we have h2/h3 headers
     toc_html = generate_toc_html(headers)
 
+    # Get cached parsed datetime for display (avoid re-parsing)
+    parsed_dt = meta.get('_parsed_dt')
+
     # Create article HTML
     article_html = f"""
 <header class="article-header">
     <div class="post-meta">
-        <time class="post-date">{format_date(meta.get('date', ''))}</time>
+        <time class="post-date">{format_date(meta.get('date', ''), parsed_dt)}</time>
         <span class="post-reading-time">{reading_time} min read</span>
     </div>
     <h1>{meta.get('title', 'Untitled')}</h1>
@@ -749,9 +761,11 @@ def build_blog_index(posts):
     # Generate post list
     post_list = []
     for meta in sorted(posts, key=lambda x: x.get('date', ''), reverse=True):
+        # Use cached parsed datetime if available (avoid re-parsing)
+        parsed_dt = meta.get('_parsed_dt')
         post_list.append(f"""
 <article class="post-card">
-    <div class="post-date">{format_date(meta.get('date', ''))}</div>
+    <div class="post-date">{format_date(meta.get('date', ''), parsed_dt)}</div>
     <h3><a href="{meta.get('slug', '')}.html">{meta.get('title', 'Untitled')}</a></h3>
     <p>{meta.get('description', '')}</p>
 </article>
