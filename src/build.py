@@ -769,11 +769,15 @@ def build_blog_index(posts):
     for meta in sorted(posts, key=lambda x: x.get('date', ''), reverse=True):
         # Use cached parsed datetime if available (avoid re-parsing)
         parsed_dt = meta.get('_parsed_dt')
+        title = meta.get('title', 'Untitled')
+        slug = meta.get('slug', '')
+        date = meta.get('date', '')
+        description = meta.get('description', '')
         post_list.append(f"""
 <article class="post-card">
-    <div class="post-date">{format_date(meta.get('date', ''), parsed_dt)}</div>
-    <h3><a href="{meta.get('slug', '')}.html">{meta.get('title', 'Untitled')}</a></h3>
-    <p>{meta.get('description', '')}</p>
+    <div class="post-date">{format_date(date, parsed_dt)}</div>
+    <h3><a href="{slug}.html">{title}</a></h3>
+    <p>{description}</p>
 </article>
 """)
 
