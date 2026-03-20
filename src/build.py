@@ -489,6 +489,24 @@ def escape_xml(text):
                 .replace('"', "&quot;"))
 
 
+def build_post_meta_html(date_str, parsed_dt, reading_time=None):
+    """Build post meta HTML with date and optional reading time.
+
+    Args:
+        date_str: Date string in YYYY-MM-DD or ISO 8601 format
+        parsed_dt: Optional pre-parsed datetime object
+        reading_time: Optional reading time in minutes
+
+    Returns:
+        HTML string for post meta section
+    """
+    meta_html = f'<div class="post-meta"><time class="post-date">{format_date(date_str, parsed_dt)}</time>'
+    if reading_time:
+        meta_html += f' <span class="post-reading-time">{reading_time} min read</span>'
+    meta_html += '</div>'
+    return meta_html
+
+
 def generate_toc_html(headers):
     """Generate table of contents HTML from headers list.
 
@@ -776,6 +794,9 @@ def build_post(filepath):
             break
     meta['preview'] = ' '.join(preview_lines[:3])[:RSS_PREVIEW_LENGTH]
 
+    # Cache reading time for index page
+    meta['reading_time'] = reading_time
+
     # Return metadata with slug for index
     meta['slug'] = slug
     return meta
@@ -789,15 +810,18 @@ def build_blog_index(posts):
     # Generate post list
     post_list = []
     for meta in sorted(posts, key=lambda x: x.get('date', ''), reverse=True):
-        # Use cached parsed datetime if available (avoid re-parsing)
+        # Use cached parsed datetime and reading time if available (avoid re-parsing)
         parsed_dt = meta.get('_parsed_dt')
         title = meta.get('title', 'Untitled')
         slug = meta.get('slug', '')
         date = meta.get('date', '')
         description = meta.get('description', '')
+        reading_time = meta.get('reading_time')
+
+        post_meta = build_post_meta_html(date, parsed_dt, reading_time)
         post_list.append(f"""
 <article class="post-card">
-    <div class="post-date">{format_date(date, parsed_dt)}</div>
+    {post_meta}
     <h3><a href="{slug}.html">{title}</a></h3>
     <p>{description}</p>
 </article>
