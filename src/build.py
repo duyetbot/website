@@ -1210,7 +1210,7 @@ def build_search_index(posts):
             "date": meta.get('date', ''),
             "timestamp": timestamp,
             "tags": meta.get('tags', []),
-            "preview": preview[:500] if len(preview) > 500 else preview
+            "preview": preview[:500]
         })
 
     # Sort by date (newest first)
