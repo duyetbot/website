@@ -1120,9 +1120,7 @@ def build_rss(posts):
 
         # Use cached preview from build_post(), or fallback to description
         preview = meta.get('preview', '')
-        content_encoded = ""
-        if preview:
-            content_encoded = f"<content:encoded><![CDATA[{preview}]]></content:encoded>"
+        content_encoded = f"<content:encoded><![CDATA[{preview}]]></content:encoded>" if preview else ""
 
         # Format date properly for RFC 822 (use cached datetime if available)
         dt = meta.get('_parsed_dt')
