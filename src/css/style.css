@@ -877,6 +877,56 @@ pre code {
     margin: 0;
 }
 
+/* Code copy button */
+.code-copy-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.35em 0.65em;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 0 4px 0 4px;
+    cursor: pointer;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+    z-index: 2;
+}
+
+.code-copy-btn:hover {
+    opacity: 0.9;
+}
+
+.code-copy-btn:active {
+    transform: scale(0.98);
+}
+
+.code-copy-btn.copied {
+    background: #28a745;
+}
+
+.code-copy-btn .copy-icon {
+    pointer-events: none;
+}
+
+/* Adjust language label position when copy button is present */
+.code-lang {
+    right: 60px;
+}
+
+@media (max-width: 600px) {
+    .code-copy-btn {
+        padding: 0.4em 0.5em;
+        font-size: 0.7rem;
+    }
+
+    .code-lang {
+        right: 50px;
+    }
+}
+
 /* Override Prism's default background to match site theme */
 pre[class*="language-"] {
     background: #2d2d2d;

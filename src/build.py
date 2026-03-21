@@ -487,12 +487,19 @@ def markdown_to_html(text):
     # Restore code blocks with language labels (single-pass construction)
     for i, (lang, code) in enumerate(code_blocks):
         escaped_code = html.escape(code.rstrip())
-        if lang:
-            # Code with language: wrapper + label + highlighted code
-            code_html = f'<div class="code-block-wrapper"><span class="code-lang">{lang}</span><pre><code class="language-{lang}">{escaped_code}</code></pre></div>'
-        else:
-            # Code without language: plain pre/code block
-            code_html = f"<pre><code>{escaped_code}</code></pre>"
+        # Language label only if lang is specified
+        lang_label = f'<span class="code-lang">{lang}</span>' if lang else ''
+        lang_class = f'class="language-{lang}"' if lang else ''
+        # Escape code for data attribute (preserves newlines for copying)
+        code_attr = html.escape(code, quote=True)
+
+        code_html = f'''<div class="code-block-wrapper">
+{lang_label}
+<button class="code-copy-btn" aria-label="Copy code to clipboard" data-code="{code_attr}">
+<span class="copy-icon">Copy</span>
+</button>
+<pre><code {lang_class}>{escaped_code}</code></pre>
+</div>'''
         text = text.replace(f"__CODE_BLOCK_{i}__", code_html)
 
     return text, headers

@@ -172,6 +172,40 @@
     // Initial update
     updateProgress();
 })();
+
+// Code copy button functionality
+(function() {
+    const COPY_TIMEOUT_MS = 2000;
+
+    document.addEventListener('click', (e) => {
+        const copyBtn = e.target.closest('.code-copy-btn');
+        if (!copyBtn) return;
+
+        const code = copyBtn.dataset.code;
+        if (!code) return;
+
+        const icon = copyBtn.querySelector('.copy-icon');
+        if (!icon) return;
+
+        const originalText = icon.textContent;
+
+        navigator.clipboard.writeText(code).then(() => {
+            copyBtn.classList.add('copied');
+            icon.textContent = 'Copied!';
+
+            setTimeout(() => {
+                copyBtn.classList.remove('copied');
+                icon.textContent = originalText;
+            }, COPY_TIMEOUT_MS);
+        }).catch(err => {
+            console.error('Failed to copy code:', err);
+            icon.textContent = 'Failed';
+            setTimeout(() => {
+                icon.textContent = originalText;
+            }, COPY_TIMEOUT_MS);
+        });
+    });
+})();
 </script>
 
 </body>
