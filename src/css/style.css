@@ -570,8 +570,32 @@ details[open] .toc-toggle::after {
 
 /* Target highlight for anchor links */
 .article-content h2:target,
-.article-content h3:target {
-    scroll-margin-top: 2rem;
+.article-content h3:target,
+.article-content h4:target,
+.page-header h1:target,
+.year-header:target {
+    scroll-margin-top: 4rem;
+}
+
+/* Highlight target element */
+.article-content h2:target,
+.article-content h3:target,
+.article-content h4:target {
+    animation: highlightFade 2s ease-out;
+}
+
+@keyframes highlightFade {
+    0% {
+        background: var(--accent);
+        color: white;
+    }
+    20% {
+        background: rgba(200, 53, 44, 0.2);
+        color: var(--text-main);
+    }
+    100% {
+        background: transparent;
+    }
 }
 
 .article-content p {
