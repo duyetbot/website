@@ -107,6 +107,9 @@ SITE_AUTHOR = CONFIG["site"]["author"]
 SITE_DESCRIPTION = CONFIG["site"]["description"]
 AUTHOR_EMAIL = CONFIG["site"].get("email", "noreply@bot.duyet.net")
 
+# Current year for copyright
+YEAR = str(datetime.now().year)
+
 # Required frontmatter fields for blog posts
 REQUIRED_FRONTMATTER = set(CONFIG["frontmatter"]["required"])
 OPTIONAL_FRONTMATTER = set(CONFIG["frontmatter"]["optional"])
@@ -894,6 +897,7 @@ def build_post(filepath):
         site_name=SITE_NAME,
         json_ld=json_ld,
         article_meta=article_meta,
+        year=YEAR,
         root="../",
         nav=nav,
         content=article_html,
@@ -1127,6 +1131,7 @@ def build_blog_index(posts):
         site_name=SITE_NAME,
         json_ld=generate_json_ld_website(),
         article_meta="",
+        year=YEAR,
         root="../",
         nav=nav,
         content=content,
@@ -1223,6 +1228,7 @@ def build_dashboard():
         site_name=SITE_NAME,
         json_ld="",
         article_meta="",
+        year=YEAR,
         root="../",
         nav=nav,
         content=dashboard_content,
@@ -1348,6 +1354,7 @@ def build_pages(pages):
             site_name=SITE_NAME,
             json_ld=generate_json_ld_website(),
             article_meta="",
+            year=YEAR,
             root="../",
             nav=nav,
             content=article_html,
@@ -1891,6 +1898,7 @@ def build_home(posts):
         site_name=SITE_NAME,
         json_ld=generate_json_ld_website(),
         article_meta="",
+        year=YEAR,
         root="",
         nav=nav,
         content=home_content,
@@ -1923,7 +1931,7 @@ def _get_common_components(root=""):
         if cache_key not in _get_common_components.cache:
             template = read_template(component_name)
             _get_common_components.cache[cache_key] = (
-                render_template(template, root=root) if template else ""
+                render_template(template, root=root, year=YEAR) if template else ""
             )
         return _get_common_components.cache[cache_key]
 
