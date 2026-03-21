@@ -617,6 +617,56 @@ def generate_breadcrumbs_html(title, root=""):
 </nav>"""
 
 
+def _format_iso_date(dt):
+    """Format datetime as ISO 8601 string, ensuring timezone awareness.
+
+    Args:
+        dt: datetime object (may be timezone-naive)
+
+    Returns:
+        ISO 8601 formatted string with timezone, or None if dt is None
+    """
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.isoformat() + "+00:00"
+    return dt.isoformat()
+
+
+def generate_article_meta_tags(meta):
+    """Generate Open Graph article meta tags for blog posts.
+
+    Args:
+        meta: Post metadata dict with date, tags, author, etc.
+
+    Returns:
+        HTML string with article meta tags, or empty string if not applicable
+    """
+    parts = []
+
+    # Article published time
+    dt = meta.get('_parsed_dt')
+    iso_date = _format_iso_date(dt)
+    if iso_date:
+        parts.append(f'    <meta property="article:published_time" content="{iso_date}">')
+
+    # Article author
+    author = meta.get('author', 'duyetbot')
+    parts.append(f'    <meta property="article:author" content="{author}">')
+
+    # Article section and tags (use existing parse_tags utility)
+    tags = parse_tags(meta.get('tags'))
+    if tags:
+        # Use first tag as section
+        parts.append(f'    <meta property="article:section" content="{tags[0]}">')
+
+        # Add all tags (limit to 5)
+        for tag in tags[:5]:
+            parts.append(f'    <meta property="article:tag" content="{tag}">')
+
+    return '\n'.join(parts)
+
+
 def generate_json_ld_article(meta, url, reading_time=None, word_count=None):
     """Generate JSON-LD structured data for blog articles (BlogPosting schema with BreadcrumbList)."""
     # Use cached parsed datetime if available (avoid re-parsing)
@@ -626,13 +676,7 @@ def generate_json_ld_article(meta, url, reading_time=None, word_count=None):
         dt = _parse_datetime(date_str)
 
     # Ensure timezone-aware ISO 8601 format (append UTC if naive)
-    if dt:
-        if dt.tzinfo is None:
-            iso_date = dt.isoformat() + "+00:00"
-        else:
-            iso_date = dt.isoformat()
-    else:
-        iso_date = date_str
+    iso_date = _format_iso_date(dt) or date_str
 
     # Extract commonly used meta values
     title = meta.get('title', 'Untitled')
@@ -837,6 +881,7 @@ def build_post(filepath):
     # Render HTML
     post_url = f"{SITE_URL}/blog/{slug}.html"
     json_ld = generate_json_ld_article(meta, post_url, reading_time, word_count)
+    article_meta = generate_article_meta_tags(meta)
     html = render_template(
         base,
         title=f"{meta.get('title', 'Untitled')} // duyetbot",
@@ -846,6 +891,7 @@ def build_post(filepath):
         og_image=OG_IMAGE_URL,
         site_name=SITE_NAME,
         json_ld=json_ld,
+        article_meta=article_meta,
         root="../",
         nav=nav,
         content=article_html,
@@ -1078,6 +1124,7 @@ def build_blog_index(posts):
         og_image=OG_IMAGE_URL,
         site_name=SITE_NAME,
         json_ld=generate_json_ld_website(),
+        article_meta="",
         root="../",
         nav=nav,
         content=content,
@@ -1168,7 +1215,12 @@ def build_dashboard():
         base,
         title="Dashboard // duyetbot",
         description="OpenClaw activity metrics and automation status",
-        canonical="/dashboard.html",
+        url=f"{SITE_URL}/dashboard.html",
+        og_type=OG_TYPE_WEBSITE,
+        og_image=OG_IMAGE_URL,
+        site_name=SITE_NAME,
+        json_ld="",
+        article_meta="",
         root="../",
         nav=nav,
         content=dashboard_content,
@@ -1293,6 +1345,7 @@ def build_pages(pages):
             og_image=OG_IMAGE_URL,
             site_name=SITE_NAME,
             json_ld=generate_json_ld_website(),
+            article_meta="",
             root="../",
             nav=nav,
             content=article_html,
@@ -1835,6 +1888,7 @@ def build_home(posts):
         og_image=OG_IMAGE_URL,
         site_name=SITE_NAME,
         json_ld=generate_json_ld_website(),
+        article_meta="",
         root="",
         nav=nav,
         content=home_content,
