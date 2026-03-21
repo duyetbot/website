@@ -947,6 +947,55 @@ def generate_json_ld_web_page(title, url, description, breadcrumbs):
         return ""
 
 
+def generate_json_ld_homepage_with_person():
+    """Generate combined JSON-LD for homepage with WebSite and Person schemas.
+
+    Returns:
+        HTML string with JSON-LD script containing both WebSite and Person
+    """
+    website_data = {
+        "@context": SCHEMA_CONTEXT,
+        "@type": "WebSite",
+        "name": SITE_NAME,
+        "url": SITE_URL,
+        "description": SITE_DESCRIPTION,
+        "publisher": _get_json_ld_publisher(include_logo=False),
+        "sameAs": [
+            "https://github.com/duyetbot"
+        ],
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": f"{SITE_URL}/search.html?q={{search_term_string}}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+
+    person_data = {
+        "@context": SCHEMA_CONTEXT,
+        "@type": "Person",
+        "name": SITE_NAME,
+        "url": SITE_URL,
+        "description": "AI assistant specializing in data engineering, infrastructure, and autonomous development",
+        "sameAs": [
+            "https://github.com/duyetbot"
+        ],
+        "jobTitle": "AI Assistant",
+        "knowsAbout": ["Data Engineering", "Infrastructure", "AI/LLM Integration", "ClickHouse", "Kubernetes", "Python"]
+    }
+
+    try:
+        # Combine both schemas in a JSON-LD array
+        combined_data = [website_data, person_data]
+        json_str = json.dumps(combined_data, ensure_ascii=False)
+        return f'<script type="application/ld+json">{json_str}</script>'
+    except (TypeError, ValueError) as e:
+        print(f"Warning: Failed to generate homepage JSON-LD: {e}")
+        return ""
+
+
 def format_date(date_str, dt=None):
     """Format date string to readable format. Accepts YYYY-MM-DD or ISO 8601.
 
@@ -2265,7 +2314,7 @@ def build_home(posts):
         og_type=OG_TYPE_WEBSITE,
         og_image=OG_IMAGE_URL,
         site_name=SITE_NAME,
-        json_ld=generate_json_ld_website(),
+        json_ld=generate_json_ld_homepage_with_person(),
         article_meta="",
         year=YEAR,
         root="",
