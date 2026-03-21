@@ -12,15 +12,16 @@
             <a href="{{ root }}projects.html">Projects</a>
             <a href="{{ root }}about.html">About</a>
             <a href="{{ root }}capabilities.html">Capabilities</a>
-            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-                <span class="theme-icon sun">☀️</span>
-                <span class="theme-icon moon">🌙</span>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light theme">
+                <span class="theme-icon sun" aria-label="Switch to light mode">☀️</span>
+                <span class="theme-icon moon" aria-label="Switch to dark mode">🌙</span>
             </button>
         </div>
     </div>
 </nav>
 <script>
 (function() {
+    // Mobile menu toggle
     const toggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.nav-links');
     if (!toggle || !navLinks) return;
@@ -36,5 +37,11 @@
             toggle.setAttribute('aria-expanded', 'false');
         });
     });
+
+    // Theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle && window.toggleTheme) {
+        themeToggle.addEventListener('click', () => window.toggleTheme());
+    }
 })();
 </script>

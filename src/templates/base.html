@@ -44,14 +44,11 @@
         const THEMES = { DARK: 'dark', LIGHT: 'light' };
         const DEFAULT_THEME = THEMES.DARK;
         const html = document.documentElement;
-        const themeToggle = document.getElementById('theme-toggle');
         const metaColorScheme = document.querySelector('meta[name="color-scheme"]');
 
         function applyTheme(theme) {
             html.setAttribute('data-theme', theme);
-            if (metaColorScheme) {
-                metaColorScheme.content = theme;
-            }
+            metaColorScheme.content = theme;
         }
 
         const savedTheme = localStorage.getItem('theme') || DEFAULT_THEME;
@@ -62,10 +59,6 @@
             const newTheme = currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
             applyTheme(newTheme);
             localStorage.setItem('theme', newTheme);
-        }
-
-        if (themeToggle) {
-            themeToggle.addEventListener('click', toggleTheme);
         }
 
         window.toggleTheme = toggleTheme;
