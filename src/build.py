@@ -316,6 +316,21 @@ def validate_description(description, filepath):
     return True
 
 
+def validate_og_image():
+    """Validate that Open Graph image exists for social sharing.
+
+    Checks for og-image.png in the output directory.
+    Warns if missing since this affects social media preview.
+    """
+    og_image_path = OUTPUT_DIR / "og-image.png"
+    if not og_image_path.exists():
+        print(f"Warning: Open Graph image missing: {og_image_path}")
+        print(f"  Social media previews will use default image or no image")
+        print(f"  Recommended: Add og-image.png to {OUTPUT_DIR}")
+        return False
+    return True
+
+
 def markdown_to_html(text):
     """Simple markdown to HTML conversion. Returns (html, toc_data)."""
     import html
@@ -2132,6 +2147,9 @@ def main():
 
         # Copy assets
         copy_assets()
+
+        # Validate Open Graph image
+        validate_og_image()
 
         # Build pages configuration
         pages = {
