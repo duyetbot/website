@@ -293,6 +293,29 @@ def validate_date(date_str, filepath):
     return False
 
 
+def validate_description(description, filepath):
+    """Validate description length for SEO optimization.
+
+    Optimal length: 120-158 characters for meta descriptions.
+    Warnings issued for descriptions outside this range.
+    """
+    if not description:
+        print(f"Warning: {filepath} has empty description")
+        return False
+
+    desc_len = len(description)
+    if desc_len < 50:
+        print(f"Warning: {filepath} description too short ({desc_len} chars) - minimum 50, optimal 120-158")
+        return False
+    elif desc_len > 160:
+        print(f"Warning: {filepath} description too long ({desc_len} chars) - maximum 160, optimal 120-158")
+        return False
+    elif desc_len < 120 or desc_len > 158:
+        print(f"Info: {filepath} description {desc_len} chars - outside optimal range (120-158) but acceptable")
+        return True
+    return True
+
+
 def markdown_to_html(text):
     """Simple markdown to HTML conversion. Returns (html, toc_data)."""
     import html
@@ -843,6 +866,10 @@ def build_post(filepath):
     # Validate date if present
     if 'date' in meta and not validate_date(meta['date'], filepath):
         pass
+
+    # Validate description length for SEO
+    if 'description' in meta:
+        validate_description(meta['description'], filepath)
 
     # Cache parsed datetime for reuse in RSS/sitemap (avoid re-parsing)
     date_str = meta.get('date', '')
