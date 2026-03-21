@@ -1944,17 +1944,39 @@ mark {
    ============================================ */
 
 @media print {
+    /* Show breadcrumbs in print for context */
+    .breadcrumbs {
+        display: block;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 1em;
+        padding-bottom: 0.5em;
+    }
+
+    .breadcrumbs ol {
+        font-size: 9pt;
+    }
+
+    .breadcrumbs li {
+        color: #666;
+    }
+
+    .breadcrumbs a {
+        color: #666;
+    }
+
     /* Hide non-content elements */
     .site-nav,
     .site-footer,
     .back-to-top,
     .reading-progress,
+    .reading-progress-bar,
     .article-nav,
     .article-nav-pager,
     .related-posts,
     .skip-link,
     .theme-toggle,
-    .nav-search-link {
+    .nav-search-link,
+    .toc {
         display: none !important;
     }
 
@@ -1970,6 +1992,17 @@ mark {
         max-width: 100%;
         padding: 0;
         margin: 0;
+    }
+
+    /* Add URL and date to print header */
+    .article-header::before {
+        content: "Source: " attr(data-url);
+        display: block;
+        font-size: 9pt;
+        color: #666;
+        margin-bottom: 1em;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 0.5em;
     }
 
     /* Article headers */

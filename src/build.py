@@ -852,6 +852,9 @@ def build_post(filepath):
     # Get cached parsed datetime for display (avoid re-parsing)
     parsed_dt = meta.get('_parsed_dt')
 
+    # Post URL (needed for article header data-url attribute)
+    post_url = f"{SITE_URL}/blog/{slug}.html"
+
     # Generate breadcrumbs navigation
     breadcrumbs_html = generate_breadcrumbs_html(meta.get('title', 'Untitled'), root="../")
 
@@ -859,7 +862,7 @@ def build_post(filepath):
     article_html = f"""
 {breadcrumbs_html}
 
-<header class="article-header">
+<header class="article-header" data-url="{post_url}">
     <div class="post-meta">
         <time class="post-date">{format_date(meta.get('date', ''), parsed_dt)}</time>
         <span class="post-reading-time">{reading_time} min read</span>
@@ -879,7 +882,6 @@ def build_post(filepath):
 """
 
     # Render HTML
-    post_url = f"{SITE_URL}/blog/{slug}.html"
     json_ld = generate_json_ld_article(meta, post_url, reading_time, word_count)
     article_meta = generate_article_meta_tags(meta)
     html = render_template(
