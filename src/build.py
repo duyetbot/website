@@ -1534,6 +1534,7 @@ def build_sitemap(posts):
         (f"{SITE_URL}/projects.html", "0.8", "monthly"),
         (f"{SITE_URL}/capabilities.html", "0.7", "monthly"),
         (f"{SITE_URL}/search.html", "0.6", "monthly"),
+        (f"{SITE_URL}/tags.html", "0.6", "weekly"),
         (f"{SITE_URL}/dashboard.html", "0.5", "weekly"),
         (f"{SITE_URL}/getting-started.html", "0.5", "monthly"),
         (f"{SITE_URL}/roadmap.html", "0.5", "monthly"),
