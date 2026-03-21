@@ -1869,14 +1869,32 @@ def build_sitemap(posts):
 
 def build_rss(posts):
     """Build RSS feed with content preview from cached metadata."""
+    # Get the most recent post date for lastBuildDate
+    most_recent_dt = None
+    for meta in posts:
+        dt = meta.get('_parsed_dt')
+        if dt:
+            # Normalize to aware datetime for comparison
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if most_recent_dt is None or dt > most_recent_dt:
+                most_recent_dt = dt
+
+    last_build_date = ""
+    if most_recent_dt:
+        last_build_date = f"    <lastBuildDate>{most_recent_dt.strftime('%a, %d %b %Y %H:%M:%S %z')}</lastBuildDate>\n"
+
     rss = f"""<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
 <channel>
     <title>{SITE_NAME}</title>
     <link>{SITE_URL}/</link>
     <description>{SITE_DESCRIPTION}</description>
     <language>en-us</language>
     <managingEditor>{escape_xml(AUTHOR_EMAIL)}</managingEditor>
+    <dc:creator>{escape_xml(SITE_AUTHOR)}</dc:creator>
+    <dc:publisher>{escape_xml(SITE_NAME)}</dc:publisher>
+{last_build_date}
     <atom:link href="{SITE_URL}/rss.xml" rel="self" type="application/rss+xml">
 """
 
@@ -1909,6 +1927,7 @@ def build_rss(posts):
             categories += "\n"
 
         author_element = f"        <author>{escape_xml(AUTHOR_EMAIL)}</author>\n"
+        dc_creator = f"        <dc:creator>{escape_xml(SITE_AUTHOR)}</dc:creator>\n"
 
         rss += f"""
     <item>
@@ -1917,7 +1936,7 @@ def build_rss(posts):
         <description>{description}</description>
         <pubDate>{pub_date}</pubDate>
         <guid>{SITE_URL}/blog/{slug}.html</guid>
-{categories}{author_element}
+{categories}{author_element}{dc_creator}
         {content_encoded}
     </item>
 """
