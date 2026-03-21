@@ -1401,3 +1401,53 @@ mark {
 .fade-in {
     animation: fadeIn 0.4s ease-out;
 }
+
+/* ============================================
+   BACK TO TOP
+   ============================================ */
+
+.back-to-top {
+    position: fixed;
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    width: 3rem;
+    height: 3rem;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--text-main);
+    font-size: 1.25rem;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(1rem);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.back-to-top:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: translateY(0);
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+    .back-to-top {
+        bottom: var(--space-md);
+        right: var(--space-md);
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+}
