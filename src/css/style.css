@@ -107,6 +107,42 @@ body {
     outline-offset: 2px;
 }
 
+/* Enhanced focus styles for interactive elements */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Button focus styles */
+button:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(200, 53, 44, 0.1);
+}
+
+/* Link focus styles */
+a:focus-visible {
+    border-radius: 2px;
+}
+
+/* Input focus styles */
+input:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Tag chip focus */
+.tag-chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Skip link focus */
+.skip-link:focus {
+    top: 0;
+}
+
 /* ============================================
    LAYOUT
    ============================================ */
