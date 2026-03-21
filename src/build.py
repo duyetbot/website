@@ -1754,6 +1754,10 @@ def build_home(posts):
         except:
             formatted_date = post['date']
 
+        # Get reading time if available
+        reading_time = post.get('reading_time')
+        reading_time_badge = f' <span class="post-reading-time">{reading_time} min read</span>' if reading_time else ''
+
         # Add a gradient accent color (rotate through 3 colors)
         gradients = [
             'linear-gradient(135deg, #ff4d4d 0%, #ff6b6b 100%)',
@@ -1768,6 +1772,7 @@ def build_home(posts):
             <div class="post-card-inner">
                 <div class="post-card-meta">
                     <time datetime="{post['date']}" itemprop="datePublished">{formatted_date}</time>
+                    {reading_time_badge}
                 </div>
                 <h3 class="post-card-title" itemprop="headline">
                     <a href="blog/{post['slug']}.html" itemprop="url">{post['title']}</a>
