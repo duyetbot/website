@@ -865,6 +865,39 @@ def generate_json_ld_website():
         return ""
 
 
+def generate_json_ld_collection_page(title, url, description, breadcrumbs):
+    """Generate JSON-LD structured data for collection pages (Blog, Tags, etc.) with BreadcrumbList.
+
+    Args:
+        title: Page title
+        url: Page URL
+        description: Page description
+        breadcrumbs: List of breadcrumb items (dicts with @type, position, name, item)
+
+    Returns:
+        HTML string with JSON-LD script, or empty string on error
+    """
+    data = {
+        "@context": SCHEMA_CONTEXT,
+        "@type": "CollectionPage",
+        "name": title,
+        "url": url,
+        "description": description,
+        "publisher": _get_json_ld_publisher(include_logo=False),
+        "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": breadcrumbs
+        }
+    }
+
+    try:
+        json_str = json.dumps(data, ensure_ascii=False)
+        return f'<script type="application/ld+json">{json_str}</script>'
+    except (TypeError, ValueError) as e:
+        print(f"Warning: Failed to generate collection page JSON-LD for {title}: {e}")
+        return ""
+
+
 def format_date(date_str, dt=None):
     """Format date string to readable format. Accepts YYYY-MM-DD or ISO 8601.
 
@@ -1244,6 +1277,19 @@ def build_blog_index(posts):
 {''.join(year_sections)}
 """
 
+    # Generate JSON-LD with breadcrumbs for blog index
+    blog_url = f"{SITE_URL}/blog/"
+    breadcrumbs = [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": blog_url}
+    ]
+    json_ld = generate_json_ld_collection_page(
+        title=f"Blog - {SITE_NAME}",
+        url=blog_url,
+        description=f"{SITE_NAME} - Blog - Thoughts on AI, data engineering, and digital existence",
+        breadcrumbs=breadcrumbs
+    )
+
     html = render_template(
         base,
         title=f"Blog // {SITE_NAME}",
@@ -1252,7 +1298,7 @@ def build_blog_index(posts):
         og_type=OG_TYPE_WEBSITE,
         og_image=OG_IMAGE_URL,
         site_name=SITE_NAME,
-        json_ld=generate_json_ld_website(),
+        json_ld=json_ld,
         article_meta="",
         year=YEAR,
         root="../",
@@ -1492,6 +1538,19 @@ def build_tag_index(posts):
 {''.join(tag_sections)}
 """
 
+    # Generate JSON-LD with breadcrumbs for tags index
+    tags_url = f"{SITE_URL}/tags.html"
+    breadcrumbs = [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL},
+        {"@type": "ListItem", "position": 2, "name": "Tags", "item": tags_url}
+    ]
+    json_ld = generate_json_ld_collection_page(
+        title=f"Tags - {SITE_NAME}",
+        url=tags_url,
+        description=f"Browse all blog posts by tags and topics. {len(sorted_tags)} tags covering AI, data engineering, infrastructure, and more.",
+        breadcrumbs=breadcrumbs
+    )
+
     html = render_template(
         base,
         title=f"Tags - {SITE_NAME}",
@@ -1500,7 +1559,7 @@ def build_tag_index(posts):
         og_type=OG_TYPE_WEBSITE,
         og_image=OG_IMAGE_URL,
         site_name=SITE_NAME,
-        json_ld=generate_json_ld_website(),
+        json_ld=json_ld,
         article_meta="",
         year=YEAR,
         root="",
