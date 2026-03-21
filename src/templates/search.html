@@ -56,7 +56,7 @@
         </div>
         <div class="search-meta" id="search-meta">
             <span id="search-status">Type to search...</span>
-            <span class="search-shortcut">Press <kbd>/</kbd> to focus, <kbd>Esc</kbd> to clear</span>
+            <span class="search-shortcut"><kbd>↑↓</kbd> Navigate, <kbd>Enter</kbd> Open, <kbd>Esc</kbd> Clear</span>
         </div>
     </section>
 
@@ -80,6 +80,8 @@
     const postCount = document.getElementById('post-count');
 
     let searchIndex = null;
+    let currentResults = [];
+    let selectedIndex = -1;
 
     // Load search index
     async function loadSearchIndex() {
@@ -110,6 +112,9 @@
 
     // Render search results
     function renderResults(results, query) {
+        currentResults = results;
+        selectedIndex = -1;
+
         if (results.length === 0) {
             searchResults.innerHTML = `
                 <div class="search-empty">
@@ -117,21 +122,23 @@
                     <p>Try different keywords or check the <a href="blog/">blog archive</a>.</p>
                 </div>
             `;
+            searchStatus.textContent = 'No results';
             return;
         }
 
-        const html = results.map(doc => {
+        const html = results.map((doc, index) => {
             const title = highlightMatch(doc.title, query);
             const description = highlightMatch(doc.description, query);
             const preview = highlightMatch(doc.preview, query);
             const tags = doc.tags.length > 0
                 ? `<div class="result-tags">${doc.tags.map(tag => `<span class="result-tag">${escapeHtml(tag)}</span>`).join('')}</div>`
                 : '';
+            const url = doc.url.replace('https://bot.duyet.net', '');
 
             return `
-                <article class="search-result">
+                <article class="search-result" data-index="${index}" data-url="${url}">
                     <div class="result-header">
-                        <h3><a href="${doc.url.replace('https://bot.duyet.net', '')}">${title}</a></h3>
+                        <h3><a href="${url}">${title}</a></h3>
                         <div class="result-meta">
                             <time class="result-date">${doc.date}</time>
                             ${doc.reading_time ? `<span class="post-reading-time">${doc.reading_time} min read</span>` : ''}
@@ -140,13 +147,26 @@
                     ${tags}
                     <p class="result-description">${description}</p>
                     <p class="result-preview">${preview}</p>
-                    <a href="${doc.url.replace('https://bot.duyet.net', '')}" class="result-link">Read more →</a>
+                    <a href="${url}" class="result-link">Read more →</a>
                 </article>
             `;
         }).join('');
 
         searchResults.innerHTML = `<div class="results-list">${html}</div>`;
         searchStatus.textContent = `Found ${results.length} result${results.length !== 1 ? 's' : ''}`;
+    }
+
+    // Update selection highlight
+    function updateSelection() {
+        const results = searchResults.querySelectorAll('.search-result');
+        results.forEach((result, index) => {
+            if (index === selectedIndex) {
+                result.classList.add('selected');
+                result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                result.classList.remove('selected');
+            }
+        });
     }
 
     // Perform search
@@ -190,10 +210,28 @@
         if (e.key === 'Escape') {
             searchInput.value = '';
             performSearch('');
+            selectedIndex = -1;
+            updateSelection();
         } else if (e.key === '/' && document.activeElement !== searchInput) {
             // Focus input when / is pressed and input is not already focused
             e.preventDefault();
             searchInput.focus();
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            // Keyboard navigation for results
+            if (currentResults.length === 0) return;
+
+            e.preventDefault();
+            if (e.key === 'ArrowDown') {
+                selectedIndex = selectedIndex < currentResults.length - 1 ? selectedIndex + 1 : 0;
+            } else {
+                selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : currentResults.length - 1;
+            }
+            updateSelection();
+        } else if (e.key === 'Enter' && selectedIndex >= 0 && selectedIndex < currentResults.length) {
+            // Navigate to selected result
+            e.preventDefault();
+            const url = currentResults[selectedIndex].url.replace('https://bot.duyet.net', '');
+            window.location.href = url;
         }
     });
 

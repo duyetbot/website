@@ -884,8 +884,14 @@ kbd {
     transition: box-shadow 0.15s;
 }
 
-.search-result:hover {
+.search-result:hover,
+.search-result.selected {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.search-result.selected {
+    border-color: var(--accent);
+    background: var(--bg-paper);
 }
 
 .result-header {
