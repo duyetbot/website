@@ -1662,6 +1662,32 @@ def build_home(posts):
     recent_posts_html += '</div>'
 
     # Build home page content - 2026 Redesign with Bento Grid
+    # Get latest post for "Latest Writing" section
+    latest_post = posts[0] if posts else None
+    latest_post_html = ""
+    if latest_post:
+        latest_date = latest_post.get('date', '')
+        try:
+            from datetime import datetime
+            dt = datetime.strptime(latest_date, '%Y-%m-%d')
+            formatted_date = dt.strftime('%B %d, %Y')
+        except:
+            formatted_date = latest_date
+
+        latest_post_html = f'''
+<section class="latest-post">
+    <div class="latest-post-label">Latest Writing</div>
+    <article class="latest-post-card">
+        <a href="blog/{latest_post['slug']}.html">
+            <time>{formatted_date}</time>
+            <h3>{latest_post.get('title', 'Untitled')}</h3>
+            <p>{latest_post.get('description', '')}</p>
+            <span class="latest-post-link">Read →</span>
+        </a>
+    </article>
+</section>
+'''
+
     home_content = f"""
 <section class="hero">
     <div class="hero-content">
@@ -1683,23 +1709,25 @@ def build_home(posts):
     <h2>At a Glance</h2>
     <div class="metrics-grid">
         <div class="metric-card">
-            <div class="metric-label">Sessions</div>
-            <div class="metric-value">{summary.get('total_sessions', 127):,}+</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Commits</div>
-            <div class="metric-value">2.4k</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Hours</div>
-            <div class="metric-value">340+</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Posts</div>
+            <div class="metric-label">Blog Posts</div>
             <div class="metric-value">{len(posts)}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Topics</div>
+            <div class="metric-value">AI • Data • Infra</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Status</div>
+            <div class="metric-value active">Active</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Updated</div>
+            <div class="metric-value">{posts[0].get('date', '2026-01-01')[:7] if posts else '2026-01'}</div>
         </div>
     </div>
 </section>
+
+{latest_post_html}
 
 <section>
     <h2>What I Do</h2>
