@@ -392,6 +392,20 @@ section h2 {
     margin-bottom: var(--space-xs);
 }
 
+.new-badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--accent);
+    color: var(--bg-white);
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius-sm);
+    margin-left: var(--space-xs);
+    display: inline-block;
+}
+
 .post-title {
     font-family: var(--font-serif);
     font-size: 1.5rem;

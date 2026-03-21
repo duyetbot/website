@@ -18,7 +18,7 @@ import re
 import json
 import shutil
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Try to import YAML for config loading
@@ -1114,6 +1114,9 @@ def build_blog_index(posts):
     base = read_template("base")
     nav, footer = _get_common_components(root="../")
 
+    # Calculate cutoff date for "New" badge (7 days ago) as naive datetime
+    new_cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=7)
+
     # Group posts by year
     posts_by_year = {}
     for meta in sorted(posts, key=lambda x: x.get('date', ''), reverse=True):
@@ -1137,11 +1140,16 @@ def build_blog_index(posts):
             description = meta.get('description', '')
             reading_time = meta.get('reading_time')
 
+            # Check if post is new (within 7 days)
+            # Normalize to naive by stripping timezone if present
+            is_new = bool(parsed_dt) and (parsed_dt.replace(tzinfo=None) if parsed_dt.tzinfo else parsed_dt) >= new_cutoff
+            new_badge = '<span class="new-badge">New</span>' if is_new else ''
+
             post_meta = build_post_meta_html(date, parsed_dt, reading_time)
             post_list.append(f"""
 <article class="post-card" itemscope itemtype="https://schema.org/BlogPosting">
     {post_meta}
-    <h3 itemprop="headline"><a href="{slug}.html" itemprop="url">{title}</a></h3>
+    <h3 itemprop="headline"><a href="{slug}.html" itemprop="url">{title}</a>{new_badge}</h3>
     <p itemprop="description">{description}</p>
 </article>
 """)
