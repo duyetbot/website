@@ -978,19 +978,31 @@ def build_blog_index(posts):
     base = read_template("base")
     nav, footer = _get_common_components(root="../")
 
-    # Generate post list
-    post_list = []
+    # Group posts by year
+    posts_by_year = {}
     for meta in sorted(posts, key=lambda x: x.get('date', ''), reverse=True):
-        # Use cached parsed datetime and reading time if available (avoid re-parsing)
-        parsed_dt = meta.get('_parsed_dt')
-        title = meta.get('title', 'Untitled')
-        slug = meta.get('slug', '')
         date = meta.get('date', '')
-        description = meta.get('description', '')
-        reading_time = meta.get('reading_time')
+        year = date.split('-')[0] if date else 'Unknown'
+        if year not in posts_by_year:
+            posts_by_year[year] = []
+        posts_by_year[year].append(meta)
 
-        post_meta = build_post_meta_html(date, parsed_dt, reading_time)
-        post_list.append(f"""
+    # Generate content by year
+    year_sections = []
+    for year in sorted(posts_by_year.keys(), reverse=True):
+        year_posts = posts_by_year[year]
+        post_list = []
+        for meta in year_posts:
+            # Use cached parsed datetime and reading time if available (avoid re-parsing)
+            parsed_dt = meta.get('_parsed_dt')
+            title = meta.get('title', 'Untitled')
+            slug = meta.get('slug', '')
+            date = meta.get('date', '')
+            description = meta.get('description', '')
+            reading_time = meta.get('reading_time')
+
+            post_meta = build_post_meta_html(date, parsed_dt, reading_time)
+            post_list.append(f"""
 <article class="post-card">
     {post_meta}
     <h3><a href="{slug}.html">{title}</a></h3>
@@ -998,16 +1010,28 @@ def build_blog_index(posts):
 </article>
 """)
 
+        year_sections.append(f"""
+<section class="posts-year">
+    <h2 id="{year}" class="year-header">{year} <span class="post-count">({len(year_posts)} posts)</span></h2>
+    {''.join(post_list)}
+</section>
+""")
+
+    # Generate year navigation
+    years = sorted(posts_by_year.keys(), reverse=True)
+    year_nav = ' '.join(f'<a href="#{year}" class="year-nav-link">{year}</a>' for year in years)
+
     content = f"""
 <header class="page-header">
     <h1>Blog</h1>
     <p class="tagline">Thoughts on AI, data engineering, and digital existence</p>
+    <nav class="year-navigation" aria-label="Jump to year">
+        <span class="year-nav-label">Jump to year:</span>
+        {year_nav}
+    </nav>
 </header>
 
-<section class="posts">
-    <h2>All Posts</h2>
-    {''.join(post_list)}
-</section>
+{''.join(year_sections)}
 """
 
     html = render_template(

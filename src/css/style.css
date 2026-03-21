@@ -339,6 +339,55 @@ section h2 {
     line-height: 1.6;
 }
 
+/* Year navigation */
+.year-navigation {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    font-size: 0.9rem;
+}
+
+.year-nav-label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.year-nav-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 0.25em 0.5em;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.year-nav-link:hover {
+    background: var(--bg-white);
+    color: var(--accent);
+}
+
+/* Year sections */
+.posts-year {
+    margin-top: var(--space-xxl);
+}
+
+.year-header {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: normal;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.post-count {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: normal;
+}
+
 /* ============================================
    ARTICLE - Editorial Typography
    ============================================ */
