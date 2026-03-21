@@ -134,6 +134,8 @@ NEW_BADGE_HTML = '<span class="new-badge">New</span>'
 # JSON-LD constants
 SCHEMA_CONTEXT = "https://schema.org"
 IN_LANGUAGE = "en-US"
+# Open Graph image for social sharing (recommended: 1200x630px PNG, place in build/ directory)
+# Tools: https://www.opengraph.xyz/, https://www.canva.com/templates/s/og-image/
 OG_IMAGE_URL = f"{SITE_URL}/og-image.png"
 
 # Common file paths
@@ -325,12 +327,22 @@ def validate_og_image():
 
     Checks for og-image.png in the output directory.
     Warns if missing since this affects social media preview.
+
+    Recommended specifications for og-image.png:
+    - Dimensions: 1200x630 pixels (1.91:1 aspect ratio)
+    - Format: PNG or JPG
+    - File size: Under 8MB
+    - Content: Site logo, branding, or representative imagery
+    - Tools: https://www.opengraph.xyz/, https://www.canva.com/
+
+    Place the image at: build/og-image.png
     """
     og_image_path = OUTPUT_DIR / "og-image.png"
     if not og_image_path.exists():
         print(f"Warning: Open Graph image missing: {og_image_path}")
         print(f"  Social media previews will use default image or no image")
-        print(f"  Recommended: Add og-image.png to {OUTPUT_DIR}")
+        print(f"  Recommended: Add og-image.png (1200x630px) to {OUTPUT_DIR}")
+        print(f"  Tools: https://www.opengraph.xyz/ or https://www.canva.com/")
         return False
     return True
 
