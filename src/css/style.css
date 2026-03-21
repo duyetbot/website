@@ -1693,6 +1693,31 @@ mark {
     color: var(--text-main);
 }
 
+/* 404 page specific styles */
+.page-content h2 {
+    color: var(--accent);
+}
+
+.page-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.page-content li {
+    margin-bottom: var(--space-sm);
+    padding-left: var(--space-md);
+}
+
+.page-content li::before {
+    content: "→";
+    color: var(--accent);
+    margin-right: var(--space-xs);
+}
+
+.page-content strong {
+    font-weight: 600;
+}
+
 .page-content p {
     margin-bottom: var(--space-md);
     color: var(--text-muted);
