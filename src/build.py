@@ -861,13 +861,17 @@ def build_post(filepath):
     # Generate breadcrumbs navigation
     breadcrumbs_html = generate_breadcrumbs_html(meta.get('title', 'Untitled'), root="../")
 
+    # ISO date for meta attributes
+    iso_date = _format_iso_date(parsed_dt) or meta.get('date', '')
+
     # Create article HTML
     article_html = f"""
 {breadcrumbs_html}
 
 <header class="article-header" data-url="{post_url}">
     <div class="post-meta">
-        <time class="post-date">{format_date(meta.get('date', ''), parsed_dt)}</time>
+        <time class="post-date" datetime="{iso_date}" itemprop="datePublished">{format_date(meta.get('date', ''), parsed_dt)}</time>
+        <meta itemprop="dateModified" content="{iso_date}">
         <span class="post-reading-time">{reading_time} min read</span>
         <span class="post-author">by <a href="https://github.com/duyetbot" rel="author">duyetbot</a></span>
     </div>
