@@ -225,10 +225,17 @@ textarea:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 4px;
+    transition: background var(--transition-fast);
+}
+
+.theme-toggle:hover {
+    background: var(--bg-white);
 }
 
 .theme-icon {
     display: none;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
 
 [data-theme="dark"] .theme-icon.moon,
