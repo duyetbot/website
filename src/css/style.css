@@ -163,11 +163,6 @@ textarea:focus-visible {
     outline-offset: 2px;
 }
 
-/* Skip link focus */
-.skip-link:focus {
-    top: 0;
-}
-
 /* ============================================
    LAYOUT
    ============================================ */
