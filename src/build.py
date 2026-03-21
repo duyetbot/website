@@ -621,7 +621,7 @@ def build_post_meta_html(date_str, parsed_dt, reading_time=None):
     """
     meta_html = f'<div class="post-meta"><time class="post-date">{format_date(date_str, parsed_dt)}</time>'
     if reading_time:
-        meta_html += f' <span class="post-reading-time">{reading_time} min read</span>'
+        meta_html += f' <span class="post-reading-time">{reading_time}{READING_TIME_SUFFIX}</span>'
     meta_html += '</div>'
     return meta_html
 
@@ -844,6 +844,22 @@ def format_date(date_str, dt=None):
 
 # Constants for reading time calculation
 READING_TIME_WPM = 200  # Average reading speed: words per minute
+READING_TIME_SUFFIX = " min read"  # Suffix for reading time display
+READING_TIME_INLINE_SEPARATOR = " · "  # Separator for inline display with date
+
+
+def format_reading_time_inline(reading_time, separator=READING_TIME_INLINE_SEPARATOR):
+    """Format reading time for inline display with date.
+
+    Args:
+        reading_time: Reading time in minutes
+        separator: Separator between date and reading time (default: " · ")
+
+    Returns:
+        Formatted string for inline display, or empty string if no reading time
+    """
+    return f'{separator}{reading_time}{READING_TIME_SUFFIX}' if reading_time else ''
+
 
 # Pre-compiled regex patterns for reading time calculation
 _CLEAN_MARKDOWN_PATTERN = re.compile(
@@ -931,7 +947,7 @@ def build_post(filepath):
     <div class="post-meta">
         <time class="post-date" datetime="{iso_date}" itemprop="datePublished">{format_date(meta.get('date', ''), parsed_dt)}</time>
         <meta itemprop="dateModified" content="{iso_date}">
-        <span class="post-reading-time">{reading_time} min read</span>
+        <span class="post-reading-time">{reading_time}{READING_TIME_SUFFIX}</span>
         <span class="post-author">by <a href="https://github.com/duyetbot" rel="author">duyetbot</a></span>
     </div>
     <h1>{meta.get('title', 'Untitled')}</h1>
@@ -1391,10 +1407,12 @@ def build_tag_index(posts):
             # Format date nicely
             parsed_dt = meta.get('_parsed_dt')
             formatted_date = format_date(date, parsed_dt) if parsed_dt else date
+            reading_time = meta.get('reading_time')
+            reading_time_suffix = format_reading_time_inline(reading_time)
 
             post_list.append(f"""
                 <li class="tag-post-item">
-                    <time class="tag-post-date">{formatted_date}</time>
+                    <time class="tag-post-date">{formatted_date}{reading_time_suffix}</time>
                     <h3 class="tag-post-title">
                         <a href="blog/{slug}.html">{title}</a>
                     </h3>
@@ -1922,7 +1940,7 @@ def build_home(posts):
 
         # Get reading time if available
         reading_time = post.get('reading_time')
-        reading_time_badge = f' <span class="post-reading-time">{reading_time} min read</span>' if reading_time else ''
+        reading_time_badge = f' <span class="post-reading-time">{reading_time}{READING_TIME_SUFFIX}</span>' if reading_time else ''
 
         # Add a gradient accent color (rotate through 3 colors)
         gradients = [
