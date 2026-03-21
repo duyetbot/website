@@ -937,6 +937,11 @@ pre code {
     opacity: 0.9;
 }
 
+.code-copy-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
 .code-copy-btn:active {
     transform: scale(0.98);
 }
