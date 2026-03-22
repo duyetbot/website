@@ -1526,6 +1526,10 @@ def build_post(filepath):
             <span class="share-icon">🖨️</span>
             <span class="share-text">Print</span>
         </button>
+        <button onclick="window.sidebar.addPanel(window.location.href, '{escape_xml(meta.get('title', ''))}', ''); return false;" class="share-link share-bookmark" aria-label="Bookmark this page">
+            <span class="share-icon">⭐</span>
+            <span class="share-text">Bookmark</span>
+        </button>
     </div>
 </div>
 
