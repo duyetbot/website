@@ -177,6 +177,9 @@ TRENDING_VELOCITY_THRESHOLD = 10  # Minimum views per day to be trending
 TRENDING_MAX_DAYS_OLD = 30  # Posts older than this won't show trending badge
 TRENDING_BADGE_HTML = '<span class="trending-badge" title="High recent engagement">🔥 Trending</span>'
 
+# Series constants
+DEFAULT_SERIES_ORDER = 999  # Default value for posts without explicit series_order
+
 # Homepage tag cloud constants
 HOME_TAG_CLOUD_SIZE = 8  # Number of popular tags to display
 HOME_TAG_FONT_SIZE_BASE_REM = 0.8  # Base font size in rem
@@ -1624,7 +1627,7 @@ def add_post_enhancements(posts):
     for series, series_posts in series_to_posts.items():
         series_to_posts[series] = sorted(
             series_posts,
-            key=lambda p: (p.get('series_order', 999), p.get('date', '')),
+            key=lambda p: (p.get('series_order', DEFAULT_SERIES_ORDER), p.get('date', '')),
             reverse=False
         )
 

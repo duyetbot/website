@@ -43,7 +43,7 @@
 
     <!-- Search Input -->
     <section class="search-input-section">
-        <div class="search-input-wrapper" style="position: relative;">
+        <div class="search-input-wrapper search-input-wrapper--with-suggestions">
             <span class="search-icon">🔍</span>
             <input
                 type="text"
@@ -519,6 +519,9 @@
         document.getElementById('share-search').style.display = (query || selectedTags.size > 0 || selectedReadingTime) ? 'inline-flex' : 'none';
     }
 
+    // Popular searches (shared constant)
+    const POPULAR_SEARCHES = ['AI', 'data engineering', 'Kubernetes', 'autonomous', 'infrastructure', 'LLM', 'RAG', 'agents'];
+
     // Recent searches storage
     const RECENT_SEARCHES_KEY = 'recent_searches';
     const MAX_RECENT_SEARCHES = 5;
@@ -572,12 +575,11 @@
         }
 
         // Popular searches based on common topics
-        const popularSearches = ['AI', 'data engineering', 'Kubernetes', 'autonomous', 'infrastructure'];
         const popularHtml = `
             <div class="popular-searches">
                 <p class="popular-searches-title">Popular topics:</p>
                 <div class="popular-searches-list">
-                    ${popularSearches.map(q => `
+                    ${POPULAR_SEARCHES.map(q => `
                         <button class="popular-search-btn" data-query="${escapeHtml(q)}">
                             ${escapeHtml(q)}
                         </button>
@@ -654,8 +656,7 @@
     searchInput.addEventListener('focus', () => {
         if (!searchInput.value.trim()) {
             const recent = getRecentSearches();
-            const popular = ['AI', 'data engineering', 'Kubernetes', 'autonomous', 'infrastructure', 'LLM', 'RAG', 'agents'];
-            const suggestions = [...recent.slice(0, 3), ...popular.slice(0, 5)];
+            const suggestions = [...recent.slice(0, 3), ...POPULAR_SEARCHES.slice(0, 5)];
             showSuggestions(suggestions);
         }
     });
@@ -667,15 +668,13 @@
         }
     });
 
-    // Hide suggestions on input
-    searchInput.addEventListener('input', () => {
-        hideSuggestions();
-    });
-
-    // Event listeners
+    // Event listeners (combined input handler)
     let searchTimeout;
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim();
+
+        // Hide suggestions when typing
+        hideSuggestions();
 
         // Debounce search
         clearTimeout(searchTimeout);
