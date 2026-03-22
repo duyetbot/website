@@ -378,7 +378,7 @@
     updateProgress();
 })();
 
-// TOC active section highlighting (blog posts only)
+// TOC active section highlighting and progress (blog posts only)
 (function() {
     const toc = document.querySelector('.toc');
     if (!toc) return;
@@ -391,6 +391,14 @@
         return document.getElementById(id);
     }).filter(Boolean);
 
+    // Update TOC progress bar based on scroll position
+    function updateTocProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = Math.min(100, Math.max(0, (scrollTop / docHeight) * 100));
+        toc.style.setProperty('--toc-progress', progress + '%');
+    }
+
     // Throttled scroll handler for intersection observation
     let ticking = false;
     const observerOptions = {
@@ -402,11 +410,14 @@
         if (!ticking) {
             window.requestAnimationFrame(() => {
                 let activeId = null;
+                let activeIndex = -1;
 
                 // Find the first visible heading from top
-                for (const entry of entries) {
+                for (let i = 0; i < entries.length; i++) {
+                    const entry = entries[i];
                     if (entry.isIntersecting) {
                         activeId = entry.target.id;
+                        activeIndex = i;
                         break;
                     }
                 }
@@ -414,17 +425,25 @@
                 // If no intersecting (scrolled past all), use last heading
                 if (!activeId && entries.length > 0) {
                     activeId = entries[entries.length - 1].target.id;
+                    activeIndex = entries.length - 1;
                 }
 
                 if (activeId) {
-                    tocLinks.forEach(link => {
+                    tocLinks.forEach((link, index) => {
                         link.classList.remove('active');
                         if (link.getAttribute('href') === '#' + activeId) {
                             link.classList.add('active');
                         }
                     });
+
+                    // Update TOC progress bar based on active section
+                    if (headings.length > 0) {
+                        const sectionProgress = (activeIndex + 1) / headings.length * 100;
+                        toc.style.setProperty('--toc-progress', sectionProgress + '%');
+                    }
                 }
 
+                updateTocProgress();
                 ticking = false;
             });
             ticking = true;
@@ -432,6 +451,17 @@
     }, observerOptions);
 
     headings.forEach(heading => observer.observe(heading));
+
+    // Also update progress on scroll for smoother bar
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                updateTocProgress();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
 })();
 
 // Code copy and heading link functionality (unified handler)

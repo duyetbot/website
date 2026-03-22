@@ -844,6 +844,21 @@ section h2 {
     background: var(--bg-white);
     border: 1px solid var(--border);
     border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* TOC reading progress bar */
+.toc::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: var(--accent);
+    width: var(--toc-progress, 0%);
+    transition: width 0.2s ease-out;
+    z-index: 1;
 }
 
 /* Sticky TOC on larger screens for better navigation */
