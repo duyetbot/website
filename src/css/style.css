@@ -1695,10 +1695,19 @@ pre code {
     cursor: pointer;
     transition: opacity var(--transition-fast), transform var(--transition-fast);
     z-index: 2;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .code-copy-btn:hover {
     opacity: 0.9;
+}
+
+.code-copy-btn:active {
+    transform: scale(0.95);
 }
 
 .code-copy-btn:focus-visible {
