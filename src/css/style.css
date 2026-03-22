@@ -1007,12 +1007,14 @@ details[open] .toc-toggle::after {
     color: #0077b5;
 }
 
-.share-copy {
+.share-copy,
+.share-print {
     border: none;
     font: inherit;
 }
 
-.share-copy:hover {
+.share-copy:hover,
+.share-print:hover {
     border-color: var(--accent);
     color: var(--accent);
 }

@@ -1269,6 +1269,10 @@ def build_post(filepath):
             <span class="share-icon">📋</span>
             <span class="share-text">Copy link</span>
         </button>
+        <button onclick="window.print()" class="share-link share-print" aria-label="Print this article">
+            <span class="share-icon">🖨️</span>
+            <span class="share-text">Print</span>
+        </button>
     </div>
 </div>
 
