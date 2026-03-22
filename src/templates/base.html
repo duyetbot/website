@@ -730,6 +730,129 @@
     }
 })();
 
+// Mark as read functionality (blog posts only)
+(function() {
+    const isBlogPost = /\/blog\/\d{4}-\d{2}-\d{2}/.test(window.location.pathname);
+    if (!isBlogPost) return;
+
+    const READ_POSTS_KEY = 'readPosts';
+    const READ_DATES_KEY = 'readDates'; // Track when posts were read
+
+    function getReadPosts() {
+        try {
+            return JSON.parse(localStorage.getItem(READ_POSTS_KEY) || '{}');
+        } catch {
+            return {};
+        }
+    }
+
+    function saveReadPosts(posts) {
+        try {
+            localStorage.setItem(READ_POSTS_KEY, JSON.stringify(posts));
+        } catch (e) {
+            console.debug('Could not save read posts:', e);
+        }
+    }
+
+    function markAsRead() {
+        const url = window.location.pathname;
+        const posts = getReadPosts();
+        const now = new Date().toISOString();
+
+        if (!posts[url]) {
+            posts[url] = now;
+            saveReadPosts(posts);
+
+            // Update button state
+            const btn = document.getElementById('mark-read-btn');
+            if (btn) {
+                btn.classList.add('marked');
+                btn.innerHTML = '<span class="mark-read-icon">✓</span><span class="mark-read-text">Read</span>';
+            }
+
+            // Add read indicator class to body
+            document.body.classList.add('post-marked-read');
+        }
+    }
+
+    function markAsUnread() {
+        const url = window.location.pathname;
+        const posts = getReadPosts();
+
+        if (posts[url]) {
+            delete posts[url];
+            saveReadPosts(posts);
+
+            // Update button state
+            const btn = document.getElementById('mark-read-btn');
+            if (btn) {
+                btn.classList.remove('marked');
+                btn.innerHTML = '<span class="mark-read-icon">○</span><span class="mark-read-text">Mark as read</span>';
+            }
+
+            // Remove read indicator class from body
+            document.body.classList.remove('post-marked-read');
+        }
+    }
+
+    function toggleReadStatus() {
+        const url = window.location.pathname;
+        const posts = getReadPosts();
+        if (posts[url]) {
+            markAsUnread();
+        } else {
+            markAsRead();
+        }
+    }
+
+    function initializeReadButton() {
+        const url = window.location.pathname;
+        const posts = getReadPosts();
+        const isRead = !!posts[url];
+
+        // Find the meta section and add the mark read button
+        const metaSection = document.querySelector('.post-meta');
+        if (!metaSection) return;
+
+        // Create button
+        const btn = document.createElement('button');
+        btn.id = 'mark-read-btn';
+        btn.className = 'mark-read-btn' + (isRead ? ' marked' : '');
+        btn.setAttribute('aria-label', isRead ? 'Mark as unread' : 'Mark as read');
+        btn.innerHTML = isRead
+            ? '<span class="mark-read-icon">✓</span><span class="mark-read-text">Read</span>'
+            : '<span class="mark-read-icon">○</span><span class="mark-read-text">Mark as read</span>';
+
+        btn.addEventListener('click', toggleReadStatus);
+
+        // Insert after TTS button
+        const ttsButton = document.getElementById('tts-button');
+        if (ttsButton && ttsButton.parentNode) {
+            const separator = document.createElement('span');
+            separator.className = 'post-meta-separator';
+            separator.id = 'mark-read-separator';
+            ttsButton.parentNode.insertBefore(separator, ttsButton.nextSibling);
+            separator.parentNode.insertBefore(btn, separator.nextSibling);
+        }
+
+        // Add read indicator class if already read
+        if (isRead) {
+            document.body.classList.add('post-marked-read');
+        }
+    }
+
+    // Initialize after DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeReadButton);
+    } else {
+        initializeReadButton();
+    }
+
+    // Expose functions for potential use elsewhere
+    window.markAsRead = markAsRead;
+    window.markAsUnread = markAsUnread;
+})();
+
 // TOC active section highlighting and progress (blog posts only)
 (function() {
     const toc = document.querySelector('.toc');

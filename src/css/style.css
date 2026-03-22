@@ -1020,6 +1020,7 @@ section h2 {
 
 .article-header,
 .page-header {
+    position: relative;
     padding: var(--space-xl) 0;
     border-bottom: 1px solid var(--border);
     margin-bottom: var(--space-lg);
@@ -1214,6 +1215,43 @@ section h2 {
     font-size: 0.75rem;
 }
 
+.mark-read-btn {
+    composes: meta-button;
+}
+
+.mark-read-btn.marked {
+    background: #22c55e;
+    color: var(--bg-white);
+    border-color: #22c55e;
+}
+
+.mark-read-btn.marked:hover {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+.mark-read-icon {
+    font-size: 0.9em;
+}
+
+.mark-read-text {
+    font-size: 0.75rem;
+}
+
+/* Read indicator on post body */
+.post-marked-read .article-header::before {
+    content: '✓ Read';
+    position: absolute;
+    top: -2rem;
+    right: 0;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    padding: 0.2em 0.5em;
+    border-radius: var(--radius-sm);
+}
+
 /* Nav button tooltips (visible on hover) */
 .theme-toggle:hover::before,
 .font-size-controls:hover::before {
@@ -1247,7 +1285,9 @@ body.focus-mode .back-to-top,
 body.focus-mode .post-meta-separator,
 body.focus-mode .post-source-link,
 body.focus-mode .reading-streak-badge,
-body.focus-mode #streak-separator {
+body.focus-mode #streak-separator,
+body.focus-mode .mark-read-btn,
+body.focus-mode #mark-read-separator {
     opacity: 0.1;
     pointer-events: none;
     transition: opacity 0.3s ease;
@@ -4467,6 +4507,8 @@ mark {
     .post-meta-separator,
     .reading-streak-badge,
     #streak-separator,
+    .mark-read-btn,
+    #mark-read-separator,
     .modal {
         display: none !important;
     }
