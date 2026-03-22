@@ -1827,6 +1827,7 @@ def build_pages(pages):
             site_name=SITE_NAME,
             json_ld=json_ld,
             article_meta="",
+            robots=page_data.get('robots', ''),
             year=YEAR,
             root="../",
             nav=nav,
@@ -2479,6 +2480,7 @@ def main():
             "404": {
                 "title": "404 - Not Found",
                 "description": "Page not found - duyetbot",
+                "robots": '<meta name="robots" content="noindex, follow">',
                 "content": """
 ## 404 - Page Not Found
 
