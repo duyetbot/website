@@ -1189,7 +1189,14 @@ def build_post(filepath):
     parsed_dt = meta.get('_parsed_dt')
 
     # Post URL (needed for article header data-url attribute)
-    post_url = f"{SITE_URL}/blog/{slug}.html"
+    # Support optional 'canonical' frontmatter for custom canonical URL
+    canonical_url = meta.get('canonical')
+    if canonical_url:
+        # Validate canonical URL is absolute
+        if not canonical_url.startswith('http://') and not canonical_url.startswith('https://'):
+            print(f"Warning: Canonical URL must be absolute in {filepath}, using default")
+            canonical_url = None
+    post_url = canonical_url or f"{SITE_URL}/blog/{slug}.html"
 
     # Generate breadcrumbs navigation
     breadcrumbs_html = generate_breadcrumbs_html(meta.get('title', 'Untitled'), root="../")
