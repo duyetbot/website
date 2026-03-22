@@ -2336,8 +2336,12 @@ def build_sitemap(posts):
     <changefreq>{changefreq}</changefreq>
   </url>""")
 
-    # Calculate freshness threshold for dynamic priority (UTC)
-    six_months_ago = datetime.now(timezone.utc) - timedelta(days=180)
+    # Calculate freshness thresholds for dynamic priority (UTC)
+    now_utc = datetime.now(timezone.utc)
+    one_week_ago = now_utc - timedelta(days=7)
+    one_month_ago = now_utc - timedelta(days=30)
+    three_months_ago = now_utc - timedelta(days=90)
+    six_months_ago = now_utc - timedelta(days=180)
 
     # Add blog posts with lastmod, dynamic priority, and changefreq
     for meta in posts:
@@ -2362,17 +2366,27 @@ def build_sitemap(posts):
                 if compare_dt.tzinfo is None:
                     compare_dt = compare_dt.replace(tzinfo=timezone.utc)
 
-                # Dynamic priority based on recency
-                if compare_dt > six_months_ago:
-                    # Recent posts (within 6 months) get higher priority
+                # Dynamic priority based on recency with granular tiers
+                if compare_dt > one_week_ago:
+                    # Very recent posts (within 1 week) - highest priority
+                    priority = "1.0"
+                    changefreq = "daily"
+                elif compare_dt > one_month_ago:
+                    # Recent posts (within 1 month)
+                    priority = "0.95"
+                    changefreq = "weekly"
+                elif compare_dt > three_months_ago:
+                    # Posts from 1-3 months ago
                     priority = "0.9"
                     changefreq = "weekly"
-                elif compare_dt > six_months_ago - timedelta(days=180):
-                    # Posts 6-12 months old
-                    priority = "0.8"
+                elif compare_dt > six_months_ago:
+                    # Posts from 3-6 months ago
+                    priority = "0.85"
+                    changefreq = "monthly"
                 else:
-                    # Older posts
+                    # Older posts (6+ months)
                     priority = "0.7"
+                    changefreq = "monthly"
 
         # Build XML element with blog-specific SEO metadata
         url_elements.append(f"""  <url>
