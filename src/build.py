@@ -1720,6 +1720,17 @@ def add_post_enhancements(posts):
                 if series_nav_parts:
                     current_part = series_index + 1
                     total_parts = len(series_posts)
+
+                    # Build series dropdown options
+                    dropdown_options = []
+                    for idx, sp in enumerate(series_posts):
+                        is_current = idx == series_index
+                        part_num = idx + 1
+                        dropdown_options.append(f'''
+                        <option value="{sp.get('slug')}.html"{' selected' if is_current else ''}>
+                            Part {part_num}: {escape_xml(sp.get('title', 'Untitled'))}
+                        </option>''')
+
                     series_nav_html = f'''
 <nav class="series-nav">
     <div class="series-nav-header">
@@ -1728,6 +1739,11 @@ def add_post_enhancements(posts):
     </div>
     <div class="series-nav-bar">
         <div class="series-progress-fill" style="width: {(current_part / total_parts) * 100}%"></div>
+    </div>
+    <div class="series-dropdown-wrapper">
+        <select class="series-dropdown" onchange="window.location.href = this.value">
+            {"".join(dropdown_options)}
+        </select>
     </div>
     <div class="series-nav-links">{"".join(series_nav_parts)}</div>
 </nav>'''

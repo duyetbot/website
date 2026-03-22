@@ -1762,6 +1762,27 @@ details[open] .toc-toggle::after {
     transition: width 0.3s ease;
 }
 
+.series-dropdown-wrapper {
+    margin-bottom: var(--space-md);
+}
+
+.series-dropdown {
+    width: 100%;
+    padding: var(--space-sm);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    background: var(--bg-white);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.series-dropdown:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
 .series-nav-links {
     display: flex;
     flex-direction: column;
@@ -4063,6 +4084,40 @@ mark {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+/* Activity heatmap */
+.activity-heatmap {
+    display: flex;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+}
+
+.heatmap-day {
+    flex: 1;
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: help;
+    transition: transform 0.2s ease;
+}
+
+.heatmap-day:hover {
+    transform: scale(1.1);
+}
+
+.heatmap-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .heatmap-label {
+    color: rgba(0, 0, 0, 0.6);
 }
 
 /* Quick Reads Section */

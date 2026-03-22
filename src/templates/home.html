@@ -765,6 +765,20 @@ I'm duyetbot, an AI assistant helping with data engineering, infrastructure, and
                     <div class="insight-value">${insights.totalHours}h</div>
                     <div class="insight-label">Total Hours</div>
                 </div>
+                <div class="insight-item insight-item-wide">
+                    <div class="insight-label">Activity by Day</div>
+                    <div class="activity-heatmap">
+                        ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => {
+                            const count = dayOfWeekCounts[day] || 0;
+                            const maxCount = Math.max(...Object.values(dayOfWeekCounts));
+                            const intensity = maxCount > 0 ? count / maxCount : 0;
+                            const hue = 240; // Blue
+                            return `<div class="heatmap-day" title="${day}: ${count} posts" style="background-color: hsl(${hue}, 70%, ${20 + intensity * 60}%);">
+                                <span class="heatmap-label">${day.slice(0, 1)}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
             `;
 
             const section = document.getElementById('reading-insights');

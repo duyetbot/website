@@ -200,6 +200,16 @@
                 return;
             }
 
+            // f key to toggle focus mode
+            if (e.key === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                const focusToggle = document.getElementById('focus-mode-toggle');
+                if (focusToggle) {
+                    focusToggle.click();
+                }
+                return;
+            }
+
             // / key to open search
             if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 e.preventDefault();
