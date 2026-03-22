@@ -43,7 +43,7 @@
 
     <!-- Search Input -->
     <section class="search-input-section">
-        <div class="search-input-wrapper">
+        <div class="search-input-wrapper" style="position: relative;">
             <span class="search-icon">🔍</span>
             <input
                 type="text"
@@ -52,8 +52,14 @@
                 placeholder="Search articles..."
                 autocomplete="off"
                 aria-label="Search articles"
+                aria-autocomplete="list"
+                aria-controls="search-suggestions"
             >
             <button id="search-clear" class="search-clear" aria-label="Clear search" style="display: none;">✕</button>
+            <div id="search-suggestions" class="search-suggestions" style="display: none;" role="listbox">
+                <div class="suggestions-header">Quick searches</div>
+                <div id="suggestions-list" class="suggestions-list"></div>
+            </div>
         </div>
         <div class="search-meta" id="search-meta">
             <span id="search-status">Type to search...</span>
@@ -609,6 +615,62 @@
             });
         });
     }
+
+    // Search suggestions functionality
+    const searchSuggestions = document.getElementById('search-suggestions');
+    const suggestionsList = document.getElementById('suggestions-list');
+
+    function showSuggestions(suggestions) {
+        if (!suggestions || suggestions.length === 0) {
+            searchSuggestions.style.display = 'none';
+            return;
+        }
+
+        suggestionsList.innerHTML = suggestions.map(s => `
+            <button class="suggestion-item" data-query="${escapeHtml(s)}" role="option">
+                <span class="suggestion-icon">🔍</span>
+                <span class="suggestion-text">${escapeHtml(s)}</span>
+            </button>
+        `).join('');
+
+        searchSuggestions.style.display = 'block';
+
+        // Add click handlers
+        searchSuggestions.querySelectorAll('.suggestion-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                searchInput.value = query;
+                searchSuggestions.style.display = 'none';
+                performSearch(query);
+            });
+        });
+    }
+
+    function hideSuggestions() {
+        searchSuggestions.style.display = 'none';
+    }
+
+    // Show suggestions on focus (if input is empty)
+    searchInput.addEventListener('focus', () => {
+        if (!searchInput.value.trim()) {
+            const recent = getRecentSearches();
+            const popular = ['AI', 'data engineering', 'Kubernetes', 'autonomous', 'infrastructure', 'LLM', 'RAG', 'agents'];
+            const suggestions = [...recent.slice(0, 3), ...popular.slice(0, 5)];
+            showSuggestions(suggestions);
+        }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-input-wrapper')) {
+            hideSuggestions();
+        }
+    });
+
+    // Hide suggestions on input
+    searchInput.addEventListener('input', () => {
+        hideSuggestions();
+    });
 
     // Event listeners
     let searchTimeout;
