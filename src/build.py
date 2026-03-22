@@ -1990,6 +1990,7 @@ def build_404():
     nav, footer = _get_common_components(root="")
     css_link = f'<link rel="stylesheet" href="css/style.min.css">'
 
+    # Use template string replacement for simple variables
     html = template_path.read_text()
     html = html.replace("{{ site_name }}", SITE_NAME)
     html = html.replace("{{ url }}", f"{SITE_URL}/404.html")
@@ -1997,6 +1998,9 @@ def build_404():
     html = html.replace("{{ nav }}", nav)
     html = html.replace("{{ footer }}", footer)
     html = html.replace("{{ root }}", "")
+    # Replace build_date
+    from datetime import datetime as dt
+    html = html.replace("{{ build_date }}", dt.utcnow().strftime("%Y-%m-%d %H:%M UTC"))
 
     (OUTPUT_DIR / "404.html").write_text(html)
     print(f"Built: 404.html")
@@ -2717,12 +2721,14 @@ def render_template(template, **kwargs):
 
 def _get_common_template_vars():
     """Get common template variables used across all pages."""
+    from datetime import datetime as dt
     return {
         "og_locale": IN_LANGUAGE.replace("-", "_"),  # en-US → en_US for Open Graph
         "twitter_site": SITE_TWITTER,
         "twitter_creator": SITE_TWITTER,
         "author_name": SITE_AUTHOR,
         "github_profile": SITE_GITHUB,
+        "build_date": dt.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
     }
 
 
@@ -2743,8 +2749,9 @@ def _get_common_components(root=""):
         cache_key = f"{component_name}_{root}"
         if cache_key not in _get_common_components.cache:
             template = read_template(component_name)
+            from datetime import datetime as dt
             _get_common_components.cache[cache_key] = (
-                render_template(template, root=root, year=YEAR) if template else ""
+                render_template(template, root=root, year=YEAR, build_date=dt.utcnow().strftime("%Y-%m-%d %H:%M UTC")) if template else ""
             )
         return _get_common_components.cache[cache_key]
 
