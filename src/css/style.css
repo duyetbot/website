@@ -622,6 +622,14 @@ section h2 {
     border-bottom-color: var(--accent);
 }
 
+/* Active section highlighting */
+.toc a.active {
+    color: var(--accent);
+    font-weight: 500;
+    border-left: 2px solid var(--accent);
+    padding-left: 0.5rem;
+}
+
 .toc li li {
     padding-left: var(--space-md);
 }
