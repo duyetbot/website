@@ -435,6 +435,52 @@
     updateProgress();
 })();
 
+// Reading time remaining indicator (blog posts only)
+(function() {
+    const isBlogPost = /\/blog\/\d{4}-\d{2}-\d{2}/.test(window.location.pathname);
+    if (!isBlogPost) return;
+
+    // Find reading time in meta
+    const readingTimeEl = document.querySelector('.post-reading-time');
+    if (!readingTimeEl) return;
+
+    const readingTimeText = readingTimeEl.textContent;
+    const readingTimeMatch = readingTimeText.match(/(\d+)/);
+    if (!readingTimeMatch) return;
+
+    const totalReadingTime = parseInt(readingTimeMatch[1]);
+    const startTime = Date.now();
+
+    function updateTimeRemaining() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = Math.min(1, Math.max(0, scrollTop / docHeight));
+        const remaining = Math.ceil(totalReadingTime * (1 - progress));
+
+        if (remaining <= 0) {
+            readingTimeEl.setAttribute('data-remaining', '0 min left');
+            return;
+        }
+
+        readingTimeEl.setAttribute('data-remaining', `~${remaining} min left`);
+    }
+
+    // Update every 5 seconds on scroll
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                updateTimeRemaining();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+
+    // Initial update
+    updateTimeRemaining();
+})();
+
 // Article header progress bar (blog posts only)
 (function() {
     const progressBar = document.querySelector('.article-progress-bar-header');

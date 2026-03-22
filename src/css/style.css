@@ -779,6 +779,19 @@ section h2 {
     border-color: var(--accent);
 }
 
+.post-tags {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+.post-tags[aria-label*="active"]::before {
+    content: 'Filtered by: ';
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-right: var(--space-xs);
+}
+
 /* Year navigation */
 .year-navigation {
     display: flex;
@@ -933,6 +946,12 @@ section h2 {
     display: inline-flex;
     align-items: center;
     gap: 0.2em;
+}
+
+.post-reading-time[data-remaining]::after {
+    content: ' (' attr(data-remaining) ')';
+    font-size: 0.9em;
+    opacity: 0.8;
 }
 
 .post-author {
