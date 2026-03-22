@@ -53,5 +53,24 @@
     if (themeToggle && window.toggleTheme) {
         themeToggle.addEventListener('click', () => window.toggleTheme());
     }
+
+    // Highlight active navigation link
+    const currentPath = window.location.pathname.replace(/\.html$/, '') || 'index';
+    const navLinksContainer = document.querySelector('.nav-links');
+    if (navLinksContainer) {
+        navLinksContainer.querySelectorAll('a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href) {
+                // Remove root path for comparison
+                const linkPath = href.replace(/^\.+\//, '').replace(/\.html$/, '');
+                // Check if this link matches current path
+                if (currentPath === linkPath ||
+                    (currentPath.startsWith('blog/') && linkPath === 'blog') ||
+                    (currentPath.includes('blog/') && linkPath === 'blog/index')) {
+                    link.classList.add('active');
+                }
+            }
+        });
+    }
 })();
 </script>

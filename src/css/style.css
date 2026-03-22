@@ -228,6 +228,11 @@ textarea:focus-visible {
     color: var(--text-main);
 }
 
+.site-nav .nav-links a.active {
+    color: var(--accent);
+    font-weight: 500;
+}
+
 /* RSS link styling (shared) */
 .rss-link {
     font-family: var(--font-mono);
