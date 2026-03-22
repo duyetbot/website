@@ -484,11 +484,27 @@
             `;
         }
 
+        // Popular searches based on common topics
+        const popularSearches = ['AI', 'data engineering', 'Kubernetes', 'autonomous', 'infrastructure'];
+        const popularHtml = `
+            <div class="popular-searches">
+                <p class="popular-searches-title">Popular topics:</p>
+                <div class="popular-searches-list">
+                    ${popularSearches.map(q => `
+                        <button class="popular-search-btn" data-query="${escapeHtml(q)}">
+                            ${escapeHtml(q)}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
         searchResults.innerHTML = `
             <div class="search-empty">
                 <p>👋 Welcome! Start typing to search through <span id="post-count">${searchIndex.total}</span> articles.</p>
                 ${allTags.size > 0 ? '<p>Or click a tag below to filter.</p>' : ''}
                 ${recentHtml}
+                ${popularHtml}
             </div>
         `;
         searchStatus.textContent = 'Type to search...';
@@ -496,6 +512,15 @@
 
         // Add click handlers for recent search buttons
         searchResults.querySelectorAll('.recent-search-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                searchInput.value = query;
+                performSearch(query);
+            });
+        });
+
+        // Add click handlers for popular search buttons
+        searchResults.querySelectorAll('.popular-search-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const query = btn.dataset.query;
                 searchInput.value = query;

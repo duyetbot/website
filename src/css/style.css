@@ -2362,6 +2362,43 @@ kbd {
     border-color: var(--accent);
 }
 
+.popular-searches {
+    margin-top: var(--space-md);
+}
+
+.popular-searches-title {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: var(--space-sm);
+}
+
+.popular-searches-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    justify-content: center;
+}
+
+.popular-search-btn {
+    padding: var(--space-xs) var(--space-sm);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    background: var(--bg-paper);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.popular-search-btn:hover {
+    background: var(--accent);
+    color: var(--bg-white);
+    border-color: var(--accent);
+}
+
 .results-list {
     display: flex;
     flex-direction: column;
