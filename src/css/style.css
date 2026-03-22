@@ -4530,6 +4530,78 @@ mark {
 }
 
 /* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+
+.toast-container {
+    position: fixed;
+    bottom: var(--space-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--text-main);
+    color: var(--bg-white);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: auto;
+    max-width: 90vw;
+    text-align: center;
+}
+
+.toast-show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-hide {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.toast-info {
+    background: var(--text-main);
+}
+
+.toast-success {
+    background: #22c55e;
+}
+
+.toast-warning {
+    background: #f59e0b;
+}
+
+.toast-error {
+    background: #ef4444;
+}
+
+/* Mobile: adjust toast position */
+@media (max-width: 640px) {
+    .toast-container {
+        bottom: var(--space-md);
+        left: var(--space-sm);
+        right: var(--space-sm);
+        transform: none;
+    }
+
+    .toast {
+        max-width: 100%;
+    }
+}
+
+/* ============================================
    PRINT STYLES
    ============================================ */
 

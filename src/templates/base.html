@@ -295,6 +295,58 @@
             });
         }
     })();
+
+    // Toast notification system
+    (function() {
+        const TOAST_CONTAINER = document.getElementById('toast-container');
+        const TOAST_DURATION = 3000;
+        let toastQueue = [];
+        let isShowingToast = false;
+
+        function showToast(message, type = 'info') {
+            toastQueue.push({ message, type });
+            if (!isShowingToast) {
+                processToastQueue();
+            }
+        }
+
+        function processToastQueue() {
+            if (toastQueue.length === 0) {
+                isShowingToast = false;
+                return;
+            }
+
+            isShowingToast = true;
+            const { message, type } = toastQueue.shift();
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `<span class="toast-message">${message}</span>`;
+
+            TOAST_CONTAINER.appendChild(toast);
+
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.add('toast-show');
+            });
+
+            // Auto-dismiss after duration
+            setTimeout(() => {
+                toast.classList.remove('toast-show');
+                toast.classList.add('toast-hide');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                    processToastQueue();
+                }, 300); // Wait for hide animation
+            }, TOAST_DURATION);
+        }
+
+        // Expose globally
+        window.showToast = showToast;
+    })();
     </script>
 </head>
 <body>
@@ -304,6 +356,8 @@
     <a href=".nav-search-link" class="skip-link">Skip to search</a>
     <a href=".site-footer" class="skip-link">Skip to footer</a>
 </div>
+
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
 <div id="reading-progress" class="reading-progress" aria-hidden="true">
     <div class="reading-progress-bar"></div>
@@ -772,6 +826,11 @@
 
             // Add read indicator class to body
             document.body.classList.add('post-marked-read');
+
+            // Show toast notification
+            if (window.showToast) {
+                window.showToast('✓ Marked as read');
+            }
         }
     }
 
@@ -792,6 +851,11 @@
 
             // Remove read indicator class from body
             document.body.classList.remove('post-marked-read');
+
+            // Show toast notification
+            if (window.showToast) {
+                window.showToast('○ Marked as unread');
+            }
         }
     }
 
@@ -1090,6 +1154,11 @@
                 const ttsIcon = ttsButton.querySelector('.tts-icon');
                 ttsText.textContent = 'Listen';
                 ttsIcon.textContent = '🔊';
+
+                // Show completion toast
+                if (window.showToast) {
+                    window.showToast('✅ Finished reading article', 'success');
+                }
             };
 
             utterance.onerror = () => {
