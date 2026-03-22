@@ -1475,6 +1475,11 @@ def build_post(filepath):
             <span class="focus-icon">🔆</span>
             <span class="focus-text">Focus mode</span>
         </button>
+        <span class="post-meta-separator">·</span>
+        <button class="tts-button" id="tts-button" aria-label="Listen to article">
+            <span class="tts-icon">🔊</span>
+            <span class="tts-text">Listen</span>
+        </button>
     </div>
     <h1>{meta.get('title', 'Untitled')}</h1>
 </header>

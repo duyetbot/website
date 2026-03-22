@@ -1172,6 +1172,30 @@ section h2 {
     font-size: 0.75rem;
 }
 
+.tts-button {
+    composes: meta-button;
+}
+
+.tts-button.playing {
+    background: var(--accent);
+    color: var(--bg-white);
+    border-color: var(--accent);
+    animation: ttsPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ttsPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.tts-icon {
+    font-size: 0.9em;
+}
+
+.tts-text {
+    font-size: 0.75rem;
+}
+
 /* Nav button tooltips (visible on hover) */
 .theme-toggle:hover::before,
 .font-size-controls:hover::before {

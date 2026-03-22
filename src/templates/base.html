@@ -710,6 +710,80 @@
 </script>
 
 <script>
+// Text-to-Speech (blog posts only)
+(function() {
+    const isBlogPost = /\/blog\/\d{4}-\d{2}-\d{2}/.test(window.location.pathname);
+    if (!isBlogPost) return;
+
+    const ttsButton = document.getElementById('tts-button');
+    if (!ttsButton) return;
+
+    // Check for browser support
+    if (!('speechSynthesis' in window)) {
+        ttsButton.style.display = 'none';
+        return;
+    }
+
+    let utterance = null;
+    let isPlaying = false;
+
+    ttsButton.addEventListener('click', () => {
+        if (isPlaying) {
+            // Stop playback
+            window.speechSynthesis.cancel();
+            isPlaying = false;
+            ttsButton.classList.remove('playing');
+            const ttsText = ttsButton.querySelector('.tts-text');
+            const ttsIcon = ttsButton.querySelector('.tts-icon');
+            ttsText.textContent = 'Listen';
+            ttsIcon.textContent = '🔊';
+        } else {
+            // Start playback
+            const articleContent = document.querySelector('.article-content');
+            if (!articleContent) return;
+
+            // Get text content, skipping code blocks
+            const text = articleContent.textContent
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            if (!text) return;
+
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            utterance.onend = () => {
+                isPlaying = false;
+                ttsButton.classList.remove('playing');
+                const ttsText = ttsButton.querySelector('.tts-text');
+                const ttsIcon = ttsButton.querySelector('.tts-icon');
+                ttsText.textContent = 'Listen';
+                ttsIcon.textContent = '🔊';
+            };
+
+            utterance.onerror = () => {
+                isPlaying = false;
+                ttsButton.classList.remove('playing');
+                const ttsText = ttsButton.querySelector('.tts-text');
+                const ttsIcon = ttsButton.querySelector('.tts-icon');
+                ttsText.textContent = 'Listen';
+                ttsIcon.textContent = '🔊';
+            };
+
+            window.speechSynthesis.speak(utterance);
+            isPlaying = true;
+            ttsButton.classList.add('playing');
+            const ttsText = ttsButton.querySelector('.tts-text');
+            const ttsIcon = ttsButton.querySelector('.tts-icon');
+            ttsText.textContent = 'Stop';
+            ttsIcon.textContent = '🔇';
+        }
+    });
+})();
+</script>
+
+<script>
 // Quick navigation dock (blog posts only)
 (function() {
     const isBlogPost = /\/blog\/\d{4}-\d{2}-\d{2}/.test(window.location.pathname);
