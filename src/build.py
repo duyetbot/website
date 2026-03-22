@@ -1451,7 +1451,7 @@ def build_post(filepath):
     article_html = f"""
 {breadcrumbs_html}
 
-<header class="article-header" data-url="{post_url}">
+<header class="article-header" data-url="{post_url}" data-reading-time="{reading_time}">
     <div class="article-progress-header">
         <div class="article-progress-bar-header"></div>
     </div>
@@ -1512,6 +1512,10 @@ def build_post(filepath):
         <button onclick="navigator.clipboard.writeText('{post_url}').then(() => this.textContent = 'Copied!').catch(() => this.textContent = 'Failed')" class="share-link share-copy">
             <span class="share-icon">📋</span>
             <span class="share-text">Copy link</span>
+        </button>
+        <button onclick="navigator.clipboard.writeText('{escape_xml(meta.get('title', ''))}\\n{post_url}').then(() => this.textContent = 'Copied!').catch(() => this.textContent = 'Failed')" class="share-link share-copy-title" aria-label="Copy title and link">
+            <span class="share-icon">📝</span>
+            <span class="share-text">Copy with title</span>
         </button>
         <button onclick="window.print()" class="share-link share-print" aria-label="Print this article">
             <span class="share-icon">🖨️</span>
