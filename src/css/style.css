@@ -3541,6 +3541,59 @@ mark {
     font-weight: 500;
 }
 
+/* Popular Posts Section */
+.popular-posts-home {
+    margin-bottom: var(--space-xxl);
+}
+
+.popular-posts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.popular-post-item {
+    border-bottom: 1px solid var(--border);
+}
+
+.popular-post-item:last-child {
+    border-bottom: none;
+}
+
+.popular-post-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) 0;
+    color: var(--text-main);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.popular-post-link:hover {
+    color: var(--accent);
+}
+
+.popular-post-title {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    line-height: 1.4;
+}
+
+.popular-post-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.popular-post-views {
+    color: var(--accent);
+}
+
 /* ============================================
    PAGE CONTENT ENHANCEMENTS
    ============================================ */

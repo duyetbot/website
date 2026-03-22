@@ -3106,6 +3106,48 @@ def build_home(posts):
 </section>
 '''
 
+    # Generate popular posts section (top N by simulated view count)
+    POPULAR_POSTS_COUNT = 5
+    popular_posts_html = ""
+    if len(posts) > POPULAR_POSTS_COUNT:
+        # Sort posts by simulated view count (descending)
+        posts_by_views = sorted(
+            posts,
+            key=lambda p: simulate_view_count(p.get('_parsed_dt')),
+            reverse=True
+        )[:POPULAR_POSTS_COUNT]
+
+        popular_items = []
+        for post in posts_by_views:
+            parsed_dt = post.get('_parsed_dt')
+            view_count = simulate_view_count(parsed_dt)
+            formatted_date = format_date(post['date'], parsed_dt)
+            trending_badge = build_trending_badge_html(parsed_dt, leading_space=True)
+
+            popular_items.append(f'''
+                <li class="popular-post-item">
+                    <a href="blog/{post['slug']}.html" class="popular-post-link">
+                        <span class="popular-post-title">{escape_xml(post.get('title', 'Untitled'))}{trending_badge}</span>
+                        <span class="popular-post-meta">
+                            <time>{formatted_date}</time>
+                            <span class="popular-post-views">👁 {view_count:,}</span>
+                        </span>
+                    </a>
+                </li>
+            ''')
+
+        popular_posts_html = f"""
+<section class="popular-posts-home">
+    <h2>Popular Posts</h2>
+    <ul class="popular-posts-list">
+        {''.join(popular_items)}
+    </ul>
+    <div class="more-link">
+        <a href="blog/">View all posts →</a>
+    </div>
+</section>
+"""
+
     # Generate popular tags section (top N by frequency, with size-scaled display)
     # Use Counter for efficient tag counting - tags are already parsed from frontmatter
     tag_counts = Counter()
@@ -3243,6 +3285,8 @@ def build_home(posts):
 {tags_html}
 
 {latest_post_html}
+
+{popular_posts_html}
 
 <section>
     <h2>What I Do</h2>
