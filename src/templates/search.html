@@ -260,12 +260,52 @@
         return div.innerHTML;
     }
 
-    // Highlight matching text
+    // Highlight matching text with word boundaries
     function highlightMatch(text, query) {
         if (!query) return escapeHtml(text);
         const escaped = escapeHtml(text);
-        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return escaped.replace(regex, '<mark>$1</mark>');
+        // Split query into words and highlight each
+        const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        if (words.length === 0) return escaped;
+
+        let result = escaped;
+        words.forEach(word => {
+            const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            result = result.replace(regex, '<mark>$1</mark>');
+        });
+        return result;
+    }
+
+    // Simple fuzzy matching score (higher is better)
+    function fuzzyScore(text, query) {
+        if (!query) return 0;
+        const textLower = text.toLowerCase();
+        const queryLower = query.toLowerCase();
+        const words = queryLower.split(/\s+/).filter(w => w.length > 0);
+
+        let score = 0;
+        words.forEach(word => {
+            // Exact match gets highest score
+            if (textLower.includes(word)) {
+                score += 10;
+                // Bonus for word boundary match
+                if (textLower.includes(` ${word}`) || textLower.startsWith(word)) {
+                    score += 5;
+                }
+            }
+            // Partial match gets lower score
+            else {
+                let i = 0;
+                for (const char of word) {
+                    const pos = textLower.indexOf(char, i);
+                    if (pos > -1) {
+                        score += 1;
+                        i = pos + 1;
+                    }
+                }
+            }
+        });
+        return score;
     }
 
     // Render search results
@@ -327,7 +367,7 @@
         });
     }
 
-    // Perform search
+    // Perform search with fuzzy matching and relevance scoring
     function performSearch(query, updateUrl = true) {
         if (!searchIndex) {
             searchResults.innerHTML = `
@@ -341,39 +381,127 @@
         // Update URL parameters (skip during initial load to prevent duplicate history entries)
         if (updateUrl) {
             updateURL(query, selectedTags);
+            // Save to recent searches
+            if (query && query.length >= 3) {
+                saveRecentSearch(query);
+            }
         }
 
-        // If no query and no tags selected, show welcome message
+        // If no query and no tags selected, show welcome message with recent searches
         if (!query && selectedTags.size === 0) {
-            searchResults.innerHTML = `
-                <div class="search-empty">
-                    <p>👋 Welcome! Start typing to search through <span id="post-count">${searchIndex.total}</span> articles.</p>
-                    ${allTags.size > 0 ? '<p>Or click a tag below to filter.</p>' : ''}
-                </div>
-            `;
-            searchStatus.textContent = 'Type to search...';
-            searchClear.style.display = 'none';
+            showWelcomeMessage();
             return;
         }
 
         const queryLower = query ? query.toLowerCase() : '';
-        const results = searchIndex.docs.filter(doc => {
-            // Text search
-            const matchesText = !query || doc.title.toLowerCase().includes(queryLower) ||
-                   doc.description.toLowerCase().includes(queryLower) ||
-                   doc.preview.toLowerCase().includes(queryLower) ||
-                   doc.tags.some(tag => tag.toLowerCase().includes(queryLower));
 
-            // Tag filter
+        // Score and filter results
+        const scoredResults = searchIndex.docs.map(doc => {
+            let score = 0;
+
+            // Tag filter (must match all selected tags)
             const matchesTags = selectedTags.size === 0 ||
                 Array.from(selectedTags).every(tag => doc.tags.includes(tag));
+            if (!matchesTags) return { doc, score: -1 };
 
-            return matchesText && matchesTags;
-        });
+            // Text search with fuzzy matching
+            if (query) {
+                // Title matches are weighted highest
+                score += fuzzyScore(doc.title, query) * 3;
+                // Description matches
+                score += fuzzyScore(doc.description, query) * 2;
+                // Preview matches
+                score += fuzzyScore(doc.preview, query);
+                // Tag matches
+                score += doc.tags.reduce((sum, tag) => sum + fuzzyScore(tag, query), 0);
+            }
 
-        renderResults(results, query);
+            // Tag filter bonus (posts with selected tags rank higher)
+            if (selectedTags.size > 0) {
+                score += selectedTags.size * 5;
+            }
+
+            return { doc, score };
+        })
+        .filter(item => item.score > 0 || (!query && selectedTags.size > 0))
+        .sort((a, b) => b.score - a.score)
+        .map(item => item.doc);
+
+        renderResults(scoredResults, query);
         searchClear.style.display = query || selectedTags.size > 0 ? 'block' : 'none';
         document.getElementById('share-search').style.display = (query || selectedTags.size > 0) ? 'inline-flex' : 'none';
+    }
+
+    // Recent searches storage
+    const RECENT_SEARCHES_KEY = 'recent_searches';
+    const MAX_RECENT_SEARCHES = 5;
+
+    function getRecentSearches() {
+        try {
+            const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+            return stored ? JSON.parse(stored) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveRecentSearch(query) {
+        if (!query || query.length < 3) return;
+        const recent = getRecentSearches();
+        // Remove if exists and add to front
+        const filtered = recent.filter(q => q.toLowerCase() !== query.toLowerCase());
+        filtered.unshift(query);
+        // Keep only MAX_RECENT_SEARCHES
+        const trimmed = filtered.slice(0, MAX_RECENT_SEARCHES);
+        try {
+            localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(trimmed));
+        } catch {
+            // Storage might be disabled or full
+        }
+    }
+
+    function clearRecentSearches() {
+        try {
+            localStorage.removeItem(RECENT_SEARCHES_KEY);
+        } catch {}
+    }
+
+    function showWelcomeMessage() {
+        const recent = getRecentSearches();
+        let recentHtml = '';
+        if (recent.length > 0) {
+            recentHtml = `
+                <div class="recent-searches">
+                    <p class="recent-searches-title">Recent searches:</p>
+                    <div class="recent-searches-list">
+                        ${recent.map(q => `
+                            <button class="recent-search-btn" data-query="${escapeHtml(q)}">
+                                ${escapeHtml(q)}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        searchResults.innerHTML = `
+            <div class="search-empty">
+                <p>👋 Welcome! Start typing to search through <span id="post-count">${searchIndex.total}</span> articles.</p>
+                ${allTags.size > 0 ? '<p>Or click a tag below to filter.</p>' : ''}
+                ${recentHtml}
+            </div>
+        `;
+        searchStatus.textContent = 'Type to search...';
+        searchClear.style.display = 'none';
+
+        // Add click handlers for recent search buttons
+        searchResults.querySelectorAll('.recent-search-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                searchInput.value = query;
+                performSearch(query);
+            });
+        });
     }
 
     // Event listeners
