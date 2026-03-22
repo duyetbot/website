@@ -183,37 +183,76 @@
     updateProgress();
 })();
 
-// Code copy button functionality
+// Code copy and heading link functionality (unified handler)
 (function() {
     const COPY_TIMEOUT_MS = 2000;
+    const HEADING_COPY_TIMEOUT_MS = 1500;
+
+    // Store active timeouts to clear on rapid clicks (prevents memory leak)
+    const activeTimeouts = new WeakMap();
+
+    function clearTimeoutIfExists(element) {
+        const existingTimeout = activeTimeouts.get(element);
+        if (existingTimeout) {
+            clearTimeout(existingTimeout);
+        }
+    }
 
     document.addEventListener('click', (e) => {
+        // Handle code copy buttons
         const copyBtn = e.target.closest('.code-copy-btn');
-        if (!copyBtn) return;
+        if (copyBtn) {
+            const code = copyBtn.dataset.code;
+            if (!code) return;
 
-        const code = copyBtn.dataset.code;
-        if (!code) return;
+            const icon = copyBtn.querySelector('.copy-icon');
+            if (!icon) return;
 
-        const icon = copyBtn.querySelector('.copy-icon');
-        if (!icon) return;
+            const originalText = icon.textContent;
 
-        const originalText = icon.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                copyBtn.classList.add('copied');
+                icon.textContent = 'Copied!';
 
-        navigator.clipboard.writeText(code).then(() => {
-            copyBtn.classList.add('copied');
-            icon.textContent = 'Copied!';
+                clearTimeoutIfExists(copyBtn);
+                activeTimeouts.set(copyBtn, setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    icon.textContent = originalText;
+                }, COPY_TIMEOUT_MS));
+            }).catch(err => {
+                console.error('Failed to copy code:', err);
+                icon.textContent = 'Failed';
+                clearTimeoutIfExists(copyBtn);
+                activeTimeouts.set(copyBtn, setTimeout(() => {
+                    icon.textContent = originalText;
+                }, COPY_TIMEOUT_MS));
+            });
+            return;
+        }
 
-            setTimeout(() => {
-                copyBtn.classList.remove('copied');
-                icon.textContent = originalText;
-            }, COPY_TIMEOUT_MS);
-        }).catch(err => {
-            console.error('Failed to copy code:', err);
-            icon.textContent = 'Failed';
-            setTimeout(() => {
-                icon.textContent = originalText;
-            }, COPY_TIMEOUT_MS);
-        });
+        // Handle heading copy links
+        const headingLink = e.target.closest('.heading-link');
+        if (headingLink) {
+            e.preventDefault();
+
+            const slug = headingLink.dataset.slug;
+            if (!slug) return;
+
+            const url = window.location.origin + window.location.pathname + '#' + slug;
+
+            navigator.clipboard.writeText(url).then(() => {
+                headingLink.classList.add('copied');
+
+                clearTimeoutIfExists(headingLink);
+                activeTimeouts.set(headingLink, setTimeout(() => {
+                    headingLink.classList.remove('copied');
+                }, HEADING_COPY_TIMEOUT_MS));
+            }).catch(err => {
+                console.error('Failed to copy heading link:', err);
+                // Fallback: just navigate to the anchor
+                window.location.href = '#' + slug;
+            });
+        }
     });
 })();
 </script>

@@ -767,9 +767,47 @@ details[open] .toc-toggle::after {
     font-size: 0.8em;
     margin-left: 0.2em;
     opacity: 0.7;
-    display: inline-block;
-    vertical-align: middle;
+}
+
+/* Heading copy link button */
+.heading-link {
+    font-size: 0.8em;
+    opacity: 0;
+    margin-left: 0.3em;
+    text-decoration: none !important;
+    border: none !important;
     transition: opacity 0.15s ease;
+}
+
+.heading-link::before {
+    content: '🔗';
+}
+
+.article-content h2:hover .heading-link,
+.article-content h3:hover .heading-link {
+    opacity: 0.6;
+}
+
+.heading-link:hover {
+    opacity: 1 !important;
+}
+
+/* Focus-visible for keyboard accessibility */
+.heading-link:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* Copied state */
+.heading-link.copied {
+    opacity: 1;
+    color: #28a745;
+}
+
+.heading-link.copied::before {
+    content: '✓';
 }
 
 .article-content a[target="_blank"]:hover::after,

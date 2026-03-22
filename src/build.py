@@ -438,8 +438,14 @@ def markdown_to_html(text):
         hashes, title = match.groups()
         level = len(hashes)
         slug = _slugify(title)
-        # Track for TOC (skip h1 as it's the post title, already shown)
-        if level > 1:
+        # Track h2/h3 for TOC (skip h1 as it's the post title, already shown)
+        # Add copy link button for h2/h3 (icon via CSS pseudo-element)
+        if level >= 2 and level <= 3:
+            headers.append((level, title, slug))
+            link_button = f' <a href="#{slug}" class="heading-link" data-slug="{slug}" aria-label="Copy link to this section"></a>'
+            return f'<h{level} id="{slug}">{title}{link_button}</h{level}>'
+        # Track h4+ for TOC only (no copy link)
+        if level > 3:
             headers.append((level, title, slug))
         return f'<h{level} id="{slug}">{title}</h{level}>'
 
