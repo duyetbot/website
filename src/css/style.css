@@ -1574,12 +1574,23 @@ details[open] .toc-toggle::after {
 }
 
 /* External link indicator */
-.article-content a[target="_blank"]::after,
-.page-content a[target="_blank"]::after {
+.article-content a[href^="http"]::after,
+.page-content a[href^="http"]::after {
     content: "↗";
     font-size: 0.8em;
     margin-left: 0.2em;
     opacity: 0.7;
+}
+
+/* Exclude internal links from external indicator */
+.article-content a[href^="/"]::after,
+.article-content a[href^="#"]::after,
+.article-content a[href*="bot.duyet.net"]::after,
+.page-content a[href^="/"]::after,
+.page-content a[href^="#"]::after,
+.page-content a[href*="bot.duyet.net"]::after {
+    content: none;
+    margin-left: 0;
 }
 
 /* Heading copy link button */
@@ -1715,12 +1726,33 @@ details[open] .toc-toggle::after {
 }
 
 .series-nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-family: var(--font-mono);
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--text-muted);
     margin-bottom: var(--space-sm);
+}
+
+.series-progress {
+    font-weight: 500;
+}
+
+.series-nav-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: var(--space-md);
+}
+
+.series-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s ease;
 }
 
 .series-nav-links {

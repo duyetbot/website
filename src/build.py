@@ -1717,9 +1717,17 @@ def add_post_enhancements(posts):
                     series_nav_parts.append(f'<a href="{series_next.get("slug")}.html" rel="next">Part {series_index + 2}: {series_next.get("title", "Next")} →</a>')
 
                 if series_nav_parts:
+                    current_part = series_index + 1
+                    total_parts = len(series_posts)
                     series_nav_html = f'''
 <nav class="series-nav">
-    <div class="series-nav-header">Series: {escape_xml(series)} ({len(series_posts)} parts)</div>
+    <div class="series-nav-header">
+        <span class="series-name">Series: {escape_xml(series)}</span>
+        <span class="series-progress">Part {current_part} of {total_parts}</span>
+    </div>
+    <div class="series-nav-bar">
+        <div class="series-progress-fill" style="width: {(current_part / total_parts) * 100}%"></div>
+    </div>
     <div class="series-nav-links">{"".join(series_nav_parts)}</div>
 </nav>'''
 
