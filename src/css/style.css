@@ -1654,6 +1654,105 @@ code[class*="language-"] {
     font-style: italic;
 }
 
+/* Archive page styles */
+.archive-year {
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--border);
+}
+
+.archive-year:last-child {
+    border-bottom: none;
+}
+
+.archive-year-title {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    color: var(--text-main);
+}
+
+.archive-month {
+    margin-bottom: var(--space-lg);
+}
+
+.archive-month-title {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: var(--space-md);
+    color: var(--text-muted);
+}
+
+.archive-count {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.archive-post-list {
+    list-style: none;
+    padding: 0;
+    margin-left: var(--space-md);
+}
+
+.archive-post-item {
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.archive-post-item:last-child {
+    border-bottom: none;
+}
+
+.archive-post-date {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: inline-block;
+    margin-right: var(--space-sm);
+}
+
+.archive-post-link {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.archive-post-link:hover {
+    color: var(--accent);
+}
+
+.archive-post-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+    margin-left: 0;
+}
+
+.archive-navigation {
+    margin-top: var(--space-md);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+.archive-nav-link {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.archive-nav-link:hover {
+    color: var(--accent);
+}
+
+.archive-stats {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
 kbd {
     background: var(--bg-white);
     border: 1px solid var(--border);

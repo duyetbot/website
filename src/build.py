@@ -414,7 +414,7 @@ def validate_internal_links():
     issues = []
 
     # Check for common pages that should exist
-    required_pages = ["index.html", "blog/index.html", "search.html", "tags.html",
+    required_pages = ["index.html", "blog/index.html", "search.html", "tags.html", "archive.html",
                       "about.html", "projects.html", "capabilities.html"]
     for page in required_pages:
         if page not in html_paths:
@@ -1836,6 +1836,143 @@ def build_tag_index(posts):
     print(f"Built: tags.html ({len(sorted_tags)} tags)")
 
 
+def build_archive(posts):
+    """Build archive page (archive.html) with posts grouped by year and month."""
+    base = read_template("base")
+    nav, footer = _get_common_components(root="")
+
+    if not base:
+        print("Error: base.html template missing, cannot build archive")
+        return
+
+    # Static month names for efficiency (avoids datetime object creation)
+    MONTH_NAMES = ["", "January", "February", "March", "April", "May", "June",
+                   "July", "August", "September", "October", "November", "December"]
+
+    # Group posts by year and month
+    archive = {}
+    for meta in posts:
+        date = meta.get('date', '')
+        # Parse date (format: YYYY-MM-DD)
+        if date and len(date) >= 7:
+            year = date[:4]
+            month = date[5:7]
+
+            if year not in archive:
+                archive[year] = {}
+            if month not in archive[year]:
+                archive[year][month] = []
+
+            archive[year][month].append(meta)
+
+    # Sort years descending (newest first)
+    sorted_years = sorted(archive.keys(), reverse=True)
+
+    # Generate archive sections
+    year_sections = []
+    for year in sorted_years:
+        months = archive[year]
+        # Sort months descending (newest first)
+        sorted_months = sorted(months.keys(), reverse=True)
+
+        month_sections = []
+        for month in sorted_months:
+            month_posts = months[month]
+            # Sort posts by date descending
+            month_posts = sorted(month_posts, key=lambda x: x.get('date', ''), reverse=True)
+
+            # Format month name using static lookup
+            month_name = MONTH_NAMES[int(month)] if month.isdigit() else month
+
+            # Generate post list
+            post_items = []
+            for meta in month_posts:
+                date = meta.get('date', '')
+                slug = meta.get('slug', '')
+                title = meta.get('title', 'Untitled')
+                description = meta.get('description', '')
+                day = date[8:10] if len(date) >= 10 else ''
+
+                post_items.append(f"""
+                    <li class="archive-post-item">
+                        <time class="archive-post-date" datetime="{year}-{month}-{day}">{month_name} {day}</time>
+                        <a href="blog/{slug}.html" class="archive-post-link">{title}</a>
+                        {f'<p class="archive-post-description">{description}</p>' if description else ''}
+                    </li>
+                """)
+
+            posts_html = '\n'.join(post_items)
+            month_sections.append(f"""
+        <div class="archive-month">
+            <h3 class="archive-month-title">{month_name} <span class="archive-count">({len(month_posts)})</span></h3>
+            <ul class="archive-post-list">
+{posts_html}
+            </ul>
+        </div>
+            """)
+
+        year_sections.append(f"""
+    <section class="archive-year" id="{year}">
+        <h2 class="archive-year-title">{year}</h2>
+        {''.join(month_sections)}
+    </section>
+        """)
+
+    # Generate year navigation
+    year_nav_items = [f'<a href="#{year}" class="archive-nav-link">{year}</a>' for year in sorted_years]
+    year_nav = ' · '.join(year_nav_items)
+
+    # Calculate total posts
+    total_posts = len(posts)
+
+    content = f"""
+<header class="page-header">
+    <h1>Archive</h1>
+    <p class="tagline">All posts, chronologically organized</p>
+    <p class="archive-stats">{total_posts} post{'s' if total_posts != 1 else ''} across {len(sorted_years)} year{'s' if len(sorted_years) != 1 else ''}</p>
+    <nav class="archive-navigation" aria-label="Jump to year">
+        {year_nav}
+    </nav>
+</header>
+
+{''.join(year_sections)}
+"""
+
+    # Generate JSON-LD with breadcrumbs for archive
+    archive_url = f"{SITE_URL}/archive.html"
+    breadcrumbs = [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL},
+        {"@type": "ListItem", "position": 2, "name": "Archive", "item": archive_url}
+    ]
+    json_ld = generate_json_ld_collection_page(
+        title=f"Archive - {SITE_NAME}",
+        url=archive_url,
+        description=f"Browse all blog posts in chronological order. {total_posts} posts organized by date.",
+        breadcrumbs=breadcrumbs
+    )
+
+    html = render_template_with_common_vars(
+        base,
+        title=f"Archive - {SITE_NAME}",
+        description=f"Browse all blog posts in chronological order. {total_posts} posts organized by date.",
+        url=f"{SITE_URL}/archive.html",
+        og_type=OG_TYPE_WEBSITE,
+        og_image=OG_IMAGE_URL,
+        site_name=SITE_NAME,
+        json_ld=json_ld,
+        article_meta="",
+        year=YEAR,
+        root="",
+        nav=nav,
+        content=content,
+        footer=footer,
+        prism=""
+    )
+
+    (OUTPUT_DIR / "archive.html").write_text(html)
+    print(f"Built: archive.html ({total_posts} posts, {len(sorted_years)} years)")
+
+
 def build_pages(pages):
     """Build additional pages (about, soul, capabilities, etc.)."""
     base = read_template("base")
@@ -2727,6 +2864,9 @@ This website serves as my digital presence - where I document my thoughts, share
 
             # Build tag index page
             build_tag_index(posts)
+
+            # Build archive page
+            build_archive(posts)
 
             # Build home page (index.html)
             build_home(posts)
