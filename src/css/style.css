@@ -2525,6 +2525,16 @@ code[class*="language-"] {
     margin-left: var(--space-sm);
 }
 
+.tag-avg-time {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: var(--bg-paper);
+    padding: 0.1em 0.4em;
+    border-radius: var(--radius-sm);
+    margin-left: var(--space-xs);
+}
+
 .tag-search-link {
     font-family: var(--font-mono);
     font-size: 0.7rem;

@@ -2128,6 +2128,11 @@ def build_tag_index(posts):
         # Sort posts by date (newest first) using sorted() to avoid mutation
         tag_posts = sorted(tag_posts, key=lambda x: x.get('date', ''), reverse=True)
 
+        # Calculate average reading time for this tag
+        reading_times = [p.get('reading_time', 0) for p in tag_posts if p.get('reading_time')]
+        avg_reading_time = round(sum(reading_times) / len(reading_times)) if reading_times else 0
+        avg_time_badge = f' <span class="tag-avg-time" title="Average reading time">~{avg_reading_time} min avg</span>' if avg_reading_time > 0 else ''
+
         # Generate post list for this tag
         post_list = []
         for meta in tag_posts[:10]:  # Limit to 10 posts per tag
@@ -2162,7 +2167,7 @@ def build_tag_index(posts):
 <section class="tag-section" id="{tag_slug}">
     <h2 class="tag-section-title">
         <a href="#{tag_slug}">#{tag}</a>
-        <span class="tag-count">{post_count} post{'s' if post_count != 1 else ''}</span>
+        <span class="tag-count">{post_count} post{'s' if post_count != 1 else ''}</span>{avg_time_badge}
         <a href="search.html?tags={tag}" class="tag-search-link" aria-label="Search all posts with {tag} tag">🔍 Search</a>
     </h2>
     <ul class="tag-post-list">
