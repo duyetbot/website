@@ -75,6 +75,15 @@
             const newTheme = currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
             applyTheme(newTheme);
             localStorage.setItem('theme', newTheme);
+
+            // Trigger rotation animation on theme toggle button
+            const themeToggle = document.querySelector('.theme-toggle');
+            if (themeToggle) {
+                themeToggle.classList.add('animating');
+                setTimeout(() => {
+                    themeToggle.classList.remove('animating');
+                }, 400); // Match animation duration
+            }
         }
 
         window.toggleTheme = toggleTheme;

@@ -251,6 +251,17 @@ textarea:focus-visible {
     transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
 
+/* Theme switch animation */
+@keyframes themeRotate {
+    from { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    to { transform: rotate(360deg) scale(1); }
+}
+
+.theme-toggle.animating .theme-icon {
+    animation: themeRotate 0.4s ease-in-out;
+}
+
 [data-theme="dark"] .theme-icon.moon,
 :root:not([data-theme="light"]) .theme-icon.moon {
     display: block;
