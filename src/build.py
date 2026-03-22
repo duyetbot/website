@@ -142,6 +142,11 @@ HOME_TAG_CLOUD_SIZE = 8  # Number of popular tags to display
 HOME_TAG_FONT_SIZE_BASE_REM = 0.8  # Base font size in rem
 HOME_TAG_FONT_SIZE_MAX_ADD_REM = 0.6  # Maximum additional font size in rem
 
+# Footer tag cloud constants
+FOOTER_TAG_CLOUD_SIZE = 12  # Number of popular tags in footer
+FOOTER_TAG_FONT_SIZE_MIN_REM = 0.75  # Minimum font size in rem
+FOOTER_TAG_FONT_SIZE_MAX_REM = 1.1  # Maximum font size in rem
+
 # JSON-LD constants
 SCHEMA_CONTEXT = "https://schema.org"
 IN_LANGUAGE = "en-US"
@@ -3097,10 +3102,65 @@ def render_template_with_common_vars(template, **kwargs):
     return render_template(template, **common_vars)
 
 
+# Global cache for footer tags HTML (generated once per build)
+_footer_tags_html = ""
+
+def generate_footer_tags_html(posts):
+    """Generate footer tag cloud HTML with size scaling.
+
+    Args:
+        posts: List of post dictionaries with 'tags' field
+
+    Returns:
+        HTML string of footer tag links wrapped in div, or empty string if no tags
+    """
+    global _footer_tags_html
+
+    tag_counts = Counter()
+    for post in posts:
+        tags = post.get('tags', [])
+        if isinstance(tags, list):
+            tag_counts.update(tags)
+
+    top_tags = tag_counts.most_common(FOOTER_TAG_CLOUD_SIZE)
+
+    if not top_tags:
+        _footer_tags_html = ""
+        return ""
+
+    # Calculate size scaling
+    max_count = top_tags[0][1]
+    min_count = top_tags[-1][1]
+    size_range = FOOTER_TAG_FONT_SIZE_MAX_REM - FOOTER_TAG_FONT_SIZE_MIN_REM
+
+    # Generate tag links
+    tag_items = []
+    for tag, count in top_tags:
+        # Normalize size between min and max
+        if max_count > min_count:
+            size_percent = (count - min_count) / (max_count - min_count)
+        else:
+            size_percent = 0.5
+        font_size = FOOTER_TAG_FONT_SIZE_MIN_REM + (size_percent * size_range)
+
+        tag_items.append(
+            f'<a href="tags.html#{slugify(tag)}" class="footer-tag" style="font-size: {font_size}rem">{escape_xml(tag)}</a>'
+        )
+
+    _footer_tags_html = f'<div class="footer-tags" aria-label="Popular topics">{" ".join(tag_items)}</div>'
+    return _footer_tags_html
+
+
 def _get_common_components(root=""):
     """Cache and return rendered nav/footer for given root path.
 
     This prevents double-rendering the same templates multiple times.
+
+    Args:
+        root: Root path for relative links
+
+    Returns:
+        Tuple of (nav_html, footer_html)
     """
     def _render_cached(component_name):
         """Helper to render and cache a single component."""
@@ -3108,8 +3168,15 @@ def _get_common_components(root=""):
         if cache_key not in _get_common_components.cache:
             template = read_template(component_name)
             from datetime import datetime as dt
+            # Pass footer_tags only to footer component
+            template_vars = {
+                "root": root,
+                "year": YEAR,
+                "build_date": dt.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+                "footer_tags": _footer_tags_html if component_name == "footer" else ""
+            }
             _get_common_components.cache[cache_key] = (
-                render_template(template, root=root, year=YEAR, build_date=dt.utcnow().strftime("%Y-%m-%d %H:%M UTC")) if template else ""
+                render_template(template, **template_vars) if template else ""
             )
         return _get_common_components.cache[cache_key]
 
@@ -3211,6 +3278,8 @@ This website serves as my digital presence - where I document my thoughts, share
 
             if posts:
                 add_post_enhancements(posts)
+                # Generate footer tags HTML (used by all pages)
+                generate_footer_tags_html(posts)
                 build_blog_index(posts)
                 build_rss(posts)
                 build_llms_txt(posts)

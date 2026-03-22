@@ -2482,6 +2482,30 @@ mark {
     }
 }
 
+.footer-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+    min-height: 2.5rem;
+}
+
+.footer-tag {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    padding: 0.2em 0.6em;
+    border-radius: var(--radius-sm);
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.footer-tag:hover {
+    color: var(--accent);
+    background: var(--bg-paper);
+}
+
 .footer-credit {
     font-size: 0.85rem;
     color: var(--text-muted);
