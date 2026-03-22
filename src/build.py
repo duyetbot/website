@@ -226,18 +226,35 @@ def read_template(name):
 def _parse_yaml_list(value):
     """Parse YAML list syntax string into a clean list.
 
-    Handles strings like '["item1", "item2", "item3"]' and returns
-    a Python list of stripped strings.
+    Handles both bracketed YAML lists like '["item1", "item2"]'
+    and simple comma-separated values like 'item1,item2,item3'.
 
     Args:
-        value: String in YAML list format
+        value: String in YAML list or comma-separated format
 
     Returns:
         List of cleaned strings, or None if not a list
     """
-    if not isinstance(value, str) or not value.startswith("["):
+    if not isinstance(value, str):
         return None
-    return [t.strip().strip('"\'') for t in value.strip("[]").split(",") if t.strip()]
+
+    # Helper to clean individual tokens (removes whitespace and quotes)
+    def clean_token(token):
+        return token.strip().strip('"\'')
+
+    # Handle bracketed YAML list format
+    if value.startswith("["):
+        return [clean_token(t) for t in value.strip("[]").split(",") if t.strip()]
+
+    # Handle simple comma-separated format (e.g., "tag1,tag2,tag3")
+    if "," in value:
+        return [clean_token(t) for t in value.split(",") if t.strip()]
+
+    # Single value without commas - treat as single-item list
+    if value.strip():
+        return [clean_token(value)]
+
+    return None
 
 
 def parse_frontmatter(content):
@@ -1331,12 +1348,16 @@ def add_post_enhancements(posts):
     slug_to_index = {post.get('slug'): i for i, post in enumerate(sorted_posts)}
 
     # Pre-compute tag sets for related posts calculation (avoid repeated set conversion)
+    # Also pre-compute parsed tags for display (limited to MAX_TAGS_DISPLAY)
+    MAX_TAGS_DISPLAY = 3
     post_tag_sets = {}
+    slug_to_display_tags = {}
     for post in posts:
         slug = post.get('slug')
         if slug:
             tags = post.get('tags', [])
             post_tag_sets[slug] = set(tags) if tags else set()
+            slug_to_display_tags[slug] = parse_tags(tags)[:MAX_TAGS_DISPLAY]
 
     # Calculate enhancements for each post
     enhancements = {}
@@ -1389,9 +1410,16 @@ def add_post_enhancements(posts):
 
                 related_html_parts = ['<section class="related-posts">\n    <h3>Related Posts</h3>\n    <div class="related-posts-list">\n']
                 for r in related:
+                    # Get pre-computed tags for this related post (O(1) lookup)
+                    r_tags = slug_to_display_tags.get(r['slug'], [])
+                    tag_badges = ''.join(f'<span class="related-tag">{escape_xml(tag)}</span>' for tag in r_tags) if r_tags else ''
+
                     related_html_parts.append(f'''        <article class="related-post-card">
             <h4><a href="{r['slug']}.html">{r['title']}</a></h4>
-            <time>{r['date']}</time>
+            <div class="related-post-meta">
+                <time>{r['date']}</time>
+                {f'<div class="related-tags">{tag_badges}</div>' if tag_badges else ''}
+            </div>
         </article>\n''')
                 related_html_parts.append('    </div>\n</section>\n')
                 related_html = ''.join(related_html_parts)
@@ -1420,16 +1448,14 @@ def add_post_enhancements(posts):
 
             # Add related posts after article content
             if enhancement['related']:
-                # Try different markers for robustness
-                marker1 = '</article>\n\n<nav class="article-nav-pager">'
-                marker2 = '</article>\n\n<nav class="article-nav">'
-                if marker1 in content:
-                    content = content.replace(marker1, f'</article>\n\n{enhancement["related"]}\n<nav class="article-nav-pager">')
-                elif marker2 in content:
-                    content = content.replace(marker2, f'</article>\n\n{enhancement["related"]}\n<nav class="article-nav">')
+                # The structure is: </article> ...author bio... ...share div... <nav class="article-nav">
+                # We need to insert between </article> and the author bio
+                marker = '</article>\n\n<footer class="article-author-bio">'
+                if marker in content:
+                    content = content.replace(marker, f'</article>\n\n{enhancement["related"]}\n<footer class="article-author-bio">')
                 else:
-                    # Fallback
-                    content = content.replace('</article>\n\n<nav', f'</article>\n\n{enhancement["related"]}\n<nav')
+                    # Fallback: try inserting after article close
+                    content = content.replace('</article>\n', f'</article>\n\n{enhancement["related"]}\n')
 
             html_path.write_text(content)
         except IOError as e:

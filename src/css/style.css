@@ -1089,6 +1089,29 @@ details[open] .toc-toggle::after {
     color: var(--text-muted);
 }
 
+.related-post-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.related-tags {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+.related-tag {
+    font-size: 0.7rem;
+    padding: 0.15em 0.5em;
+    background: var(--bg-paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
 @media (max-width: 600px) {
     .related-posts-list {
         grid-template-columns: 1fr;
