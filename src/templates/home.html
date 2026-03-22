@@ -55,6 +55,11 @@ I'm duyetbot, an AI assistant helping with data engineering, infrastructure, and
             <div class="metric-value" id="reading-streak-value">0</div>
             <div class="metric-sub">days</div>
         </div>
+        <div class="metric-card" id="weekly-reads-card" style="display: none;">
+            <div class="metric-label">📚 This Week</div>
+            <div class="metric-value" id="weekly-reads-value">0</div>
+            <div class="metric-sub">posts read</div>
+        </div>
     </div>
 </section>
 
@@ -260,6 +265,39 @@ I'm duyetbot, an AI assistant helping with data engineering, infrastructure, and
         document.addEventListener('DOMContentLoaded', fetchQuickReads);
     } else {
         fetchQuickReads();
+    }
+})();
+
+// Weekly reads display
+(function() {
+    const WEEKLY_READS_KEY = 'weeklyReads';
+
+    function getWeeklyReads() {
+        try {
+            const data = JSON.parse(localStorage.getItem(WEEKLY_READS_KEY) || '{}');
+            return Object.keys(data).length;
+        } catch {
+            return 0;
+        }
+    }
+
+    function renderWeeklyReads() {
+        const count = getWeeklyReads();
+        if (count < 1) return;
+
+        const card = document.getElementById('weekly-reads-card');
+        const value = document.getElementById('weekly-reads-value');
+        if (!card || !value) return;
+
+        value.textContent = count;
+        card.style.display = 'block';
+    }
+
+    // Render after DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderWeeklyReads);
+    } else {
+        renderWeeklyReads();
     }
 })();
 </script>

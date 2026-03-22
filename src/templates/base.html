@@ -653,6 +653,67 @@
     }
 })();
 
+// Posts read this week tracking (blog posts only)
+(function() {
+    const isBlogPost = /\/blog\/\d{4}-\d{2}-\d{2}/.test(window.location.pathname);
+    if (!isBlogPost) return;
+
+    const WEEKLY_READS_KEY = 'weeklyReads';
+    const WEEK_START_KEY = 'weekStart';
+
+    function getWeekStart() {
+        const now = new Date();
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        const weekStart = new Date(now.setDate(diff));
+        weekStart.setHours(0, 0, 0, 0);
+        return weekStart.toDateString();
+    }
+
+    function getWeeklyReads() {
+        try {
+            const data = JSON.parse(localStorage.getItem(WEEKLY_READS_KEY) || '{}');
+            return data;
+        } catch {
+            return {};
+        }
+    }
+
+    function saveWeeklyReads(data) {
+        try {
+            localStorage.setItem(WEEKLY_READS_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.debug('Could not save weekly reads:', e);
+        }
+    }
+
+    function trackWeeklyRead() {
+        const currentWeekStart = getWeekStart();
+        const savedWeekStart = localStorage.getItem(WEEK_START_KEY);
+
+        // Reset if new week
+        if (savedWeekStart !== currentWeekStart) {
+            localStorage.setItem(WEEK_START_KEY, currentWeekStart);
+            saveWeeklyReads({});
+        }
+
+        const url = window.location.pathname;
+        const reads = getWeeklyReads();
+
+        if (!reads[url]) {
+            reads[url] = true;
+            saveWeeklyReads(reads);
+        }
+    }
+
+    // Track when visiting a blog post
+    if (document.readyState === 'complete') {
+        trackWeeklyRead();
+    } else {
+        window.addEventListener('load', trackWeeklyRead);
+    }
+})();
+
 // TOC active section highlighting and progress (blog posts only)
 (function() {
     const toc = document.querySelector('.toc');
