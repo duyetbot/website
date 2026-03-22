@@ -813,6 +813,34 @@ section h2 {
     border-radius: 4px;
 }
 
+/* Sticky TOC on larger screens for better navigation */
+@media (min-width: 1024px) {
+    .toc {
+        position: sticky;
+        top: var(--space-lg);
+        max-height: calc(100vh - var(--space-xl) * 2);
+        overflow-y: auto;
+    }
+
+    /* Custom scrollbar for TOC */
+    .toc::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .toc::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .toc::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+    }
+
+    .toc::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }
+}
+
 .toc h2 {
     font-family: var(--font-sans);
     font-size: 0.875rem;
