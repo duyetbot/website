@@ -1607,6 +1607,48 @@ def add_post_enhancements(posts):
             print(f"Warning: Could not add enhancements to {slug}: {e}")
 
 
+def generate_blog_tag_chips(posts):
+    """Generate HTML for tag filter chips on blog index.
+
+    Args:
+        posts: List of post dictionaries with 'tags' field
+
+    Returns:
+        HTML string of tag filter chips
+    """
+    # Collect all unique tags
+    all_tags = set()
+    for post in posts:
+        tags = post.get('tags', [])
+        if isinstance(tags, list):
+            all_tags.update(tags)
+
+    # Sort alphabetically and limit to top 8 most common
+    tag_counts = Counter()
+    for post in posts:
+        tags = post.get('tags', [])
+        if isinstance(tags, list):
+            tag_counts.update(tags)
+
+    top_tags = [tag for tag, count in tag_counts.most_common(8)]
+
+    if not top_tags:
+        return ""
+
+    tag_chips = [
+        f'<button class="blog-tag-filter" data-tag="{escape_xml(tag)}" onclick="window.location.href=\'{SITE_URL}/tags.html#{slugify(tag)}\'">{escape_xml(tag)}</button>'
+        for tag in top_tags
+    ]
+
+    return f"""
+    <div class="blog-tag-filters">
+        <span class="tag-filter-label">Popular tags:</span>
+        {' '.join(tag_chips)}
+        <a href="{SITE_URL}/tags.html" class="view-all-tags">View all →</a>
+    </div>
+    """
+
+
 def build_blog_index(posts):
     """Build blog index page."""
     base = read_template("base")
@@ -1678,6 +1720,10 @@ def build_blog_index(posts):
         <span class="year-nav-label">Jump to year:</span>
         {year_nav}
     </nav>
+    <div class="blog-tag-filters">
+        <span class="tag-filter-label">Filter by tag:</span>
+        {generate_blog_tag_chips(posts)}
+    </div>
 </header>
 
 {''.join(year_sections)}
