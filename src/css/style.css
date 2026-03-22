@@ -4694,6 +4694,115 @@ mark {
 }
 
 /* ============================================
+   QUICK NAVIGATION MENU
+   ============================================ */
+
+.quick-nav {
+    position: fixed;
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    z-index: 900;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-sm);
+}
+
+.quick-nav-toggle {
+    width: 3.5rem;
+    height: 3.5rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-nav-toggle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.quick-nav-toggle[aria-expanded="true"] {
+    transform: rotate(45deg);
+}
+
+.quick-nav-toggle[aria-expanded="true"]:hover {
+    transform: rotate(45deg) scale(1.05);
+}
+
+.quick-nav-menu {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.quick-nav-menu[aria-hidden="false"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.quick-nav-item {
+    width: 3rem;
+    height: 3rem;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--text-main);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+}
+
+.quick-nav-item:hover {
+    transform: scale(1.1);
+    background: var(--accent);
+    color: white;
+}
+
+.quick-nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+/* Mobile: adjust position */
+@media (max-width: 640px) {
+    .quick-nav {
+        bottom: var(--space-md);
+        right: var(--space-md);
+    }
+
+    .quick-nav-toggle,
+    .quick-nav-item {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .quick-nav-icon {
+        font-size: 1.125rem;
+    }
+}
+
+/* ============================================
    KEYBOARD SHORTCUTS MODAL
    ============================================ */
 
@@ -4824,6 +4933,29 @@ mark {
 @media (prefers-color-scheme: dark) {
     .shortcuts-modal {
         --modal-bg: var(--bg-paper);
+    }
+}
+
+/* ============================================
+   MILESTONE CONFETTI ANIMATION
+   ============================================ */
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Reduced motion for confetti */
+@media (prefers-reduced-motion: reduce) {
+    @keyframes confetti-fall {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
     }
 }
 

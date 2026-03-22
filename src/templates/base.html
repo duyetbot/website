@@ -357,6 +357,27 @@
 
 <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
+<!-- Floating quick navigation menu -->
+<div class="quick-nav" id="quick-nav">
+    <button class="quick-nav-toggle" aria-label="Quick navigation" aria-expanded="false">
+        <span class="quick-nav-icon">☰</span>
+    </button>
+    <div class="quick-nav-menu" aria-hidden="true">
+        <a href="../" class="quick-nav-item" title="Home">
+            <span class="quick-nav-icon">🏠</span>
+        </a>
+        <a href="../blog/" class="quick-nav-item" title="Blog">
+            <span class="quick-nav-icon">📝</span>
+        </a>
+        <a href="../search.html" class="quick-nav-item" title="Search">
+            <span class="quick-nav-icon">🔍</span>
+        </a>
+        <button class="quick-nav-item quick-nav-theme" title="Toggle theme" aria-label="Toggle theme">
+            <span class="quick-nav-icon">🌓</span>
+        </button>
+    </div>
+</div>
+
 <!-- Keyboard shortcuts modal -->
 <div id="shortcuts-modal" class="shortcuts-modal" role="dialog" aria-hidden="true" aria-labelledby="shortcuts-title">
     <div class="shortcuts-overlay" tabindex="-1"></div>
@@ -846,6 +867,283 @@
     } else {
         window.addEventListener('load', trackWeeklyRead);
     }
+})();
+
+// TOC auto-highlight on scroll (blog posts only)
+(function() {
+    const toc = document.querySelector('.toc');
+    if (!toc) return;
+
+    const tocLinks = toc.querySelectorAll('a[href^="#"]');
+    if (tocLinks.length === 0) return;
+
+    // Set up Intersection Observer to track which section is visible
+    const observerOptions = {
+        rootMargin: '-10% 0px -60% 0px',
+        threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.getAttribute('id');
+                if (!id) return;
+
+                // Remove active class from all links
+                tocLinks.forEach(link => link.classList.remove('active'));
+
+                // Add active class to corresponding link
+                const activeLink = toc.querySelector(`a[href="#${id}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+        });
+    }, observerOptions);
+
+    // Observe all headings with IDs
+    tocLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('#')) {
+            const heading = document.querySelector(href);
+            if (heading) {
+                observer.observe(heading);
+            }
+        }
+    });
+})();
+
+// Quick navigation menu
+(function() {
+    const quickNav = document.getElementById('quick-nav');
+    if (!quickNav) return;
+
+    const toggle = quickNav.querySelector('.quick-nav-toggle');
+    const menu = quickNav.querySelector('.quick-nav-menu');
+    const themeBtn = quickNav.querySelector('.quick-nav-theme');
+
+    if (!toggle || !menu) return;
+
+    // Toggle menu
+    toggle.addEventListener('click', () => {
+        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', !isExpanded);
+        menu.setAttribute('aria-hidden', isExpanded);
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!quickNav.contains(e.target)) {
+            toggle.setAttribute('aria-expanded', 'false');
+            menu.setAttribute('aria-hidden', 'true');
+        }
+    });
+
+    // Theme toggle button
+    if (themeBtn && window.toggleTheme) {
+        themeBtn.addEventListener('click', () => {
+            window.toggleTheme();
+        });
+    }
+
+    // Close menu when navigating to a link
+    const links = menu.querySelectorAll('a');
+    links.forEach(link => {
+        link.addEventListener('click', () => {
+            toggle.setAttribute('aria-expanded', 'false');
+            menu.setAttribute('aria-hidden', 'true');
+        });
+    });
+})();
+
+// Reading speed tracking for personalized estimates (blog posts only)
+(function() {
+    const isBlogPost = /\/blog\/\d{4}-\d{2}-\d{2}/.test(window.location.pathname);
+    if (!isBlogPost) return;
+
+    const READING_SPEED_KEY = 'readingSpeed';
+    const SESSION_START_KEY = 'sessionStart';
+
+    // Get user's average reading speed (words per minute)
+    function getReadingSpeed() {
+        try {
+            const speed = localStorage.getItem(READING_SPEED_KEY);
+            return speed ? parseInt(speed) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    // Save reading speed
+    function saveReadingSpeed(wpm) {
+        try {
+            localStorage.setItem(READING_SPEED_KEY, String(wpm));
+        } catch (e) {
+            console.debug('Could not save reading speed:', e);
+        }
+    }
+
+    // Estimate word count from reading time (assuming standard 200 wpm)
+    function estimateWordCount(readingMinutes) {
+        return readingMinutes * 200;
+    }
+
+    // Calculate reading speed when post is marked as read
+    const readPostsKey = 'readPosts';
+    window.addEventListener('storage', (e) => {
+        if (e.key === readPostsKey && e.newValue) {
+            const url = window.location.pathname;
+            const readPosts = JSON.parse(e.newValue);
+
+            if (readPosts[url]) {
+                // Calculate time spent on this post
+                const sessionStart = sessionStorage.getItem(SESSION_START_KEY);
+                if (sessionStart) {
+                    const timeSpentMinutes = (Date.now() - parseInt(sessionStart)) / 60000;
+
+                    // Get reading time from meta
+                    const readingTimeEl = document.querySelector('.post-reading-time');
+                    if (readingTimeEl) {
+                        const match = readingTimeEl.textContent.match(/(\d+)/);
+                        if (match) {
+                            const estimatedMinutes = parseInt(match[1]);
+                            const wordCount = estimateWordCount(estimatedMinutes);
+
+                            // Only update if reasonable reading time (30 seconds to 2 hours)
+                            if (timeSpentMinutes >= 0.5 && timeSpentMinutes <= 120) {
+                                const actualWpm = Math.round(wordCount / timeSpentMinutes);
+
+                                // Only update if within reasonable range (50-500 wpm)
+                                if (actualWpm >= 50 && actualWpm <= 500) {
+                                    // Smooth update with existing speed
+                                    const currentSpeed = getReadingSpeed();
+                                    if (currentSpeed) {
+                                        // Weighted average (give more weight to recent)
+                                        const newSpeed = Math.round((currentSpeed * 0.7) + (actualWpm * 0.3));
+                                        saveReadingSpeed(newSpeed);
+                                    } else {
+                                        saveReadingSpeed(actualWpm);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Track session start
+    sessionStorage.setItem(SESSION_START_KEY, String(Date.now()));
+
+    // Update reading time display with personalized estimate
+    const readingTimeEl = document.querySelector('.post-reading-time');
+    const personalSpeed = getReadingSpeed();
+    if (readingTimeEl && personalSpeed) {
+        const match = readingTimeEl.textContent.match(/(\d+)/);
+        if (match) {
+            const estimatedMinutes = parseInt(match[1]);
+            const wordCount = estimateWordCount(estimatedMinutes);
+            const personalMinutes = Math.round(wordCount / personalSpeed);
+
+            // Show personalized estimate if significantly different
+            if (Math.abs(personalMinutes - estimatedMinutes) >= 2) {
+                const originalText = readingTimeEl.textContent;
+                readingTimeEl.setAttribute('data-original', originalText);
+                readingTimeEl.textContent = `~${personalMinutes} min read (based on your speed)`;
+            }
+        }
+    }
+})();
+
+// Streak milestone celebrations (confetti effect)
+(function() {
+    const MILESTONE_KEY = 'streakMilestones';
+    const MILESTONES = [7, 30, 100, 365]; // Days
+
+    function getMilestones() {
+        try {
+            const data = localStorage.getItem(MILESTONE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveMilestone(milestone) {
+        try {
+            const milestones = getMilestones();
+            if (!milestones.includes(milestone)) {
+                milestones.push(milestone);
+                localStorage.setItem(MILESTONE_KEY, JSON.stringify(milestones));
+            }
+        } catch (e) {
+            console.debug('Could not save milestone:', e);
+        }
+    }
+
+    function celebrateMilestone(milestone) {
+        // Create confetti
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe'];
+        const confettiCount = 100;
+
+        for (let i = 0; i < confettiCount; i++) {
+            createConfetti(colors);
+        }
+
+        // Show toast message
+        const messages = {
+            7: '🔥 1 week streak! Keep it up!',
+            30: '🏆 30 day streak! Amazing dedication!',
+            100: '💯 100 day streak! You\'re incredible!',
+            365: '🌟 1 year streak! Legendary!'
+        };
+
+        if (window.showToast && messages[milestone]) {
+            setTimeout(() => {
+                window.showToast(messages[milestone], 'success');
+            }, 500);
+        }
+    }
+
+    function createConfetti(colors) {
+        const confetti = document.createElement('div');
+        confetti.className = 'milestone-confetti';
+        confetti.style.cssText = `
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            left: ${Math.random() * 100}vw;
+            top: -10px;
+            border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+            pointer-events: none;
+            z-index: 10000;
+            animation: confetti-fall ${2 + Math.random() * 2}s linear forwards;
+        `;
+
+        document.body.appendChild(confetti);
+
+        setTimeout(() => {
+            confetti.remove();
+        }, 4000);
+    }
+
+    // Check for new milestones when streak is updated
+    const STREAK_KEY = 'readingStreak';
+    window.addEventListener('storage', (e) => {
+        if (e.key === STREAK_KEY && e.newValue) {
+            const streak = parseInt(e.newValue);
+            const celebrated = getMilestones();
+
+            MILESTONES.forEach(milestone => {
+                if (streak >= milestone && !celebrated.includes(milestone)) {
+                    saveMilestone(milestone);
+                    celebrateMilestone(milestone);
+                }
+            });
+        }
+    });
 })();
 
 // Mark as read functionality (blog posts only)
