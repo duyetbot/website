@@ -283,8 +283,8 @@
         // Modal close handlers
         const modal = document.getElementById('shortcuts-modal');
         if (modal) {
-            const closeBtn = modal.querySelector('.modal-close');
-            const overlay = modal.querySelector('.modal-overlay');
+            const closeBtn = modal.querySelector('.shortcuts-close');
+            const overlay = modal.querySelector('.shortcuts-overlay');
 
             closeBtn.addEventListener('click', () => {
                 modal.setAttribute('aria-hidden', 'true');
@@ -356,6 +356,41 @@
 </div>
 
 <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Keyboard shortcuts modal -->
+<div id="shortcuts-modal" class="shortcuts-modal" role="dialog" aria-hidden="true" aria-labelledby="shortcuts-title">
+    <div class="shortcuts-overlay" tabindex="-1"></div>
+    <div class="shortcuts-content">
+        <div class="shortcuts-header">
+            <h2 id="shortcuts-title">⌨️ Keyboard Shortcuts</h2>
+            <button class="shortcuts-close" aria-label="Close shortcuts">&times;</button>
+        </div>
+        <div class="shortcuts-body">
+            <div class="shortcuts-section">
+                <h3>Navigation</h3>
+                <div class="shortcut-item"><kbd>j</kbd> <span>Next post</span></div>
+                <div class="shortcut-item"><kbd>k</kbd> <span>Previous post</span></div>
+                <div class="shortcut-item"><kbd>g</kbd> <span>Go to homepage</span></div>
+                <div class="shortcut-item"><kbd>s</kbd> <span>Focus search</span></div>
+            </div>
+            <div class="shortcuts-section">
+                <h3>Reading</h3>
+                <div class="shortcut-item"><kbd>r</kbd> <span>Mark as read/unread</span></div>
+                <div class="shortcut-item"><kbd>t</kbd> <span>Text-to-speech toggle</span></div>
+                <div class="shortcut-item"><kbd>f</kbd> <span>Toggle font size</span></div>
+            </div>
+            <div class="shortcuts-section">
+                <h3>Theme</h3>
+                <div class="shortcut-item"><kbd>d</kbd> <span>Toggle dark mode</span></div>
+            </div>
+            <div class="shortcuts-section">
+                <h3>Other</h3>
+                <div class="shortcut-item"><kbd>?</kbd> <span>Show this help</span></div>
+                <div class="shortcut-item"><kbd>Esc</kbd> <span>Close modal</span></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="reading-progress" class="reading-progress" aria-hidden="true">
     <div class="reading-progress-bar"></div>
@@ -630,8 +665,8 @@
         // Remove if already exists (to move to top)
         recent = recent.filter(item => item.url !== url);
 
-        // Add to front
-        recent.unshift({ url, title, timestamp: Date.now() });
+        // Add to front with scroll position
+        recent.unshift({ url, title, timestamp: Date.now(), scrollPosition: window.scrollY || 0 });
 
         // Keep only MAX_RECENT items
         if (recent.length > MAX_RECENT) {
@@ -646,6 +681,37 @@
         addRecentlyViewed();
     } else {
         window.addEventListener('load', addRecentlyViewed);
+    }
+
+    // Save scroll position before leaving
+    window.addEventListener('beforeunload', () => {
+        const url = window.location.pathname;
+        let recent = getRecentlyViewed();
+        const item = recent.find(r => r.url === url);
+        if (item) {
+            item.scrollPosition = window.scrollY || 0;
+            saveRecentlyViewed(recent);
+        }
+    });
+
+    // Restore scroll position on page load
+    function restoreScrollPosition() {
+        const url = window.location.pathname;
+        const recent = getRecentlyViewed();
+        const item = recent.find(r => r.url === url);
+        if (item && item.scrollPosition > 0) {
+            // Use setTimeout to ensure page is fully rendered
+            setTimeout(() => {
+                window.scrollTo({ top: item.scrollPosition, behavior: 'instant' });
+            }, 0);
+        }
+    }
+
+    // Restore scroll after page loads
+    if (document.readyState === 'complete') {
+        setTimeout(restoreScrollPosition, 100);
+    } else {
+        window.addEventListener('load', () => setTimeout(restoreScrollPosition, 100));
     }
 })();
 
