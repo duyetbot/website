@@ -558,6 +558,7 @@
 
     let docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const originalTitle = document.title;
+    let celebratedCompletion = false; // Track if we've celebrated this article
 
     function updateProgress() {
         const scrollTop = window.scrollY;
@@ -571,6 +572,14 @@
             document.title = `${progressRounded}% - ${originalTitle}`;
         } else if (progressRounded >= 100) {
             document.title = `✓ ${originalTitle}`;
+
+            // Celebrate article completion on first reaching 100%
+            if (!celebratedCompletion && window.showToast) {
+                celebratedCompletion = true;
+                setTimeout(() => {
+                    window.showToast('🎉 Article complete! Great job!', 'success');
+                }, 500);
+            }
         } else {
             document.title = originalTitle;
         }
