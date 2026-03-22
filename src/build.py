@@ -22,6 +22,40 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone, UTC
 from pathlib import Path
 
+# Module-level datetime constants (computed once at build time)
+NOW = datetime.now(UTC)
+
+
+def ensure_timezone_aware(dt, tz=UTC):
+    """Ensure datetime is timezone-aware. Converts naive datetimes to specified timezone.
+
+    Args:
+        dt: Datetime object (can be None)
+        tz: Target timezone (defaults to UTC)
+
+    Returns:
+        Timezone-aware datetime, or None if input was None
+    """
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=tz)
+    return dt
+
+
+# View count simulation constants
+_VIEW_COUNT_FIRST_DAY = 50
+_VIEW_COUNT_FIRST_WEEK_BASE = 100
+_VIEW_COUNT_FIRST_WEEK_RATE = 50
+_VIEW_COUNT_FIRST_MONTH_BASE = 400
+_VIEW_COUNT_FIRST_MONTH_RATE = 30
+_VIEW_COUNT_FIRST_QUARTER_BASE = 1000
+_VIEW_COUNT_FIRST_QUARTER_RATE = 15
+_VIEW_COUNT_OLDER_BASE = 2000
+_VIEW_COUNT_OLDER_RATE = 5
+_VIEW_COUNT_MAX_YEAR_DAYS = 365
+
+
 # Try to import YAML for config loading
 try:
     import yaml
@@ -1224,6 +1258,42 @@ def calculate_reading_time(content):
     return max(1, round(words / READING_TIME_WPM)), words
 
 
+def simulate_view_count(parsed_dt):
+    """Simulate view count based on post age (for display purposes).
+
+    Uses piecewise linear progression based on post age.
+
+    Args:
+        parsed_dt: Datetime object of post publish date
+
+    Returns:
+        Integer representing simulated view count
+    """
+    if not parsed_dt:
+        return 0
+
+    # Ensure timezone-aware datetime using shared utility
+    aware_dt = ensure_timezone_aware(parsed_dt)
+    if not aware_dt:
+        return 0
+
+    # Calculate days since publication (using module-level NOW constant)
+    days_old = (NOW - aware_dt).days
+
+    # Piecewise linear view count simulation based on post age
+    if days_old < 1:
+        return _VIEW_COUNT_FIRST_DAY
+    elif days_old < 7:
+        return _VIEW_COUNT_FIRST_WEEK_BASE + (days_old * _VIEW_COUNT_FIRST_WEEK_RATE)
+    elif days_old < 30:
+        return _VIEW_COUNT_FIRST_MONTH_BASE + ((days_old - 7) * _VIEW_COUNT_FIRST_MONTH_RATE)
+    elif days_old < 90:
+        return _VIEW_COUNT_FIRST_QUARTER_BASE + ((days_old - 30) * _VIEW_COUNT_FIRST_QUARTER_RATE)
+    else:
+        years_beyond_quarter = min(days_old - 90, _VIEW_COUNT_MAX_YEAR_DAYS)
+        return _VIEW_COUNT_OLDER_BASE + (years_beyond_quarter * _VIEW_COUNT_OLDER_RATE)
+
+
 def build_post(filepath):
     """Build a single blog post (HTML + MD for LLMs)."""
     try:
@@ -1307,6 +1377,8 @@ def build_post(filepath):
         <span class="post-author">by <a href="https://github.com/duyetbot" rel="author">duyetbot</a></span>
         <span class="post-meta-separator">·</span>
         <span class="post-source-link"><a href="{slug}.md" rel="alternate" type="text/markdown">View source</a></span>
+        <span class="post-meta-separator">·</span>
+        <span class="post-views" aria-label="Estimated views">👁 {simulate_view_count(parsed_dt)} views</span>
         <span class="post-meta-separator">·</span>
         <button class="focus-mode-toggle" id="focus-mode-toggle" aria-label="Toggle focus mode">
             <span class="focus-icon">🔆</span>
