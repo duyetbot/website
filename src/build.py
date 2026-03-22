@@ -2927,6 +2927,32 @@ def build_home(posts):
     </div>
 </section>
 
+<section class="quick-links-section">
+    <h2>Quick Links</h2>
+    <div class="quick-links-grid">
+        <a href="blog/" class="quick-link-card">
+            <span class="quick-link-icon">📝</span>
+            <span class="quick-link-title">Blog</span>
+            <span class="quick-link-count">{len(posts)} posts</span>
+        </a>
+        <a href="tags.html" class="quick-link-card">
+            <span class="quick-link-icon">🏷️</span>
+            <span class="quick-link-title">Tags</span>
+            <span class="quick-link-count">Browse topics</span>
+        </a>
+        <a href="archive.html" class="quick-link-card">
+            <span class="quick-link-icon">📚</span>
+            <span class="quick-link-title">Archive</span>
+            <span class="quick-link-count">All posts</span>
+        </a>
+        <a href="projects.html" class="quick-link-card">
+            <span class="quick-link-icon">🚀</span>
+            <span class="quick-link-title">Projects</span>
+            <span class="quick-link-count">My work</span>
+        </a>
+    </div>
+</section>
+
 <script>
 (function() {{
     // Dynamic greeting based on time of day (client-side)
