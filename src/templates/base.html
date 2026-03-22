@@ -88,6 +88,55 @@
 
         window.toggleTheme = toggleTheme;
 
+        // Font size controls
+        const FONT_SIZES = { SMALL: 0.875, MEDIUM: 1, LARGE: 1.125, XLARGE: 1.25 };
+        const DEFAULT_FONT_SIZE = FONT_SIZES.MEDIUM;
+        const FONT_SIZE_KEY = 'fontSize';
+        const SIZE_VALUES = Object.values(FONT_SIZES);
+        let currentFontSize = DEFAULT_FONT_SIZE;
+
+        function applyFontSize(size) {
+            html.style.fontSize = size + 'rem';
+            currentFontSize = size;
+            localStorage.setItem(FONT_SIZE_KEY, size);
+        }
+
+        function getNextSize(direction) {
+            const currentIndex = SIZE_VALUES.findIndex(s => s >= currentFontSize);
+            if (direction === 'increase') {
+                return SIZE_VALUES[Math.min(currentIndex + 1, SIZE_VALUES.length - 1)];
+            } else {
+                return SIZE_VALUES[Math.max(currentIndex - 1, 0)];
+            }
+        }
+
+        // Load saved font size preference
+        const savedFontSize = localStorage.getItem(FONT_SIZE_KEY);
+        if (savedFontSize) {
+            const parsed = parseFloat(savedFontSize);
+            if (SIZE_VALUES.includes(parsed)) {
+                currentFontSize = parsed;
+                applyFontSize(currentFontSize);
+            }
+        }
+
+        // Font size button handlers
+        const fontDecrease = document.getElementById('font-decrease');
+        const fontIncrease = document.getElementById('font-increase');
+        const fontReset = document.getElementById('font-reset');
+
+        if (fontDecrease) {
+            fontDecrease.addEventListener('click', () => applyFontSize(getNextSize('decrease')));
+        }
+
+        if (fontIncrease) {
+            fontIncrease.addEventListener('click', () => applyFontSize(getNextSize('increase')));
+        }
+
+        if (fontReset) {
+            fontReset.addEventListener('click', () => applyFontSize(DEFAULT_FONT_SIZE));
+        }
+
         // Global keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             // Only trigger if not typing in an input/textarea
