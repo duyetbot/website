@@ -113,6 +113,14 @@
             if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 e.preventDefault();
                 window.location.href = '/search.html';
+                return;
+            }
+
+            // Ctrl/Cmd + K to toggle theme
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k' && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                window.toggleTheme();
+                return;
             }
 
             // Esc to close modal
