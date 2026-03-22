@@ -646,10 +646,26 @@
     }
 
     // Update streak when visiting a blog post
-    if (document.readyState === 'complete') {
+    function initStreakDisplay() {
         updateStreak();
+        // Display streak badge if user has an active streak
+        const streak = getStreak();
+        if (streak >= 1) {
+            const badge = document.getElementById('reading-streak-badge');
+            const separator = document.getElementById('streak-separator');
+            const count = document.getElementById('reading-streak-count');
+            if (badge && separator && count) {
+                count.textContent = streak;
+                badge.style.display = 'inline';
+                separator.style.display = 'inline';
+            }
+        }
+    }
+
+    if (document.readyState === 'complete') {
+        initStreakDisplay();
     } else {
-        window.addEventListener('load', updateStreak);
+        window.addEventListener('load', initStreakDisplay);
     }
 })();
 

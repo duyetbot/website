@@ -1120,6 +1120,24 @@ section h2 {
     margin: 0 0.5em;
 }
 
+.reading-streak-badge {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: #ff6b35;
+    background: rgba(255, 107, 53, 0.1);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 0.2em 0.5em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2em;
+}
+
+.reading-streak-badge:hover {
+    background: rgba(255, 107, 53, 0.15);
+    border-color: rgba(255, 107, 53, 0.5);
+}
+
 /* Shared inline action button styles */
 .meta-button {
     font-family: var(--font-mono);
@@ -1227,7 +1245,9 @@ body.focus-mode .breadcrumbs,
 body.focus-mode .related-posts,
 body.focus-mode .back-to-top,
 body.focus-mode .post-meta-separator,
-body.focus-mode .post-source-link {
+body.focus-mode .post-source-link,
+body.focus-mode .reading-streak-badge,
+body.focus-mode #streak-separator {
     opacity: 0.1;
     pointer-events: none;
     transition: opacity 0.3s ease;
@@ -4400,6 +4420,8 @@ mark {
     .comments-section,
     .post-source-link,
     .post-meta-separator,
+    .reading-streak-badge,
+    #streak-separator,
     .modal {
         display: none !important;
     }

@@ -1465,6 +1465,10 @@ def build_post(filepath):
         <span class="post-source-link"><a href="{slug}.md" rel="alternate" type="text/markdown">View source</a></span>
         <span class="post-meta-separator">·</span>
         <span class="post-views" aria-label="Estimated views">👁 {simulate_view_count(parsed_dt)} views</span>
+        <span class="post-meta-separator" id="streak-separator" style="display: none;">·</span>
+        <span class="reading-streak-badge" id="reading-streak-badge" style="display: none;" title="Your current reading streak">
+            🔥 <span id="reading-streak-count">0</span> day streak
+        </span>
         <span class="post-meta-separator">·</span>
         <button class="print-button" id="print-button" aria-label="Print article" onclick="window.print()">
             <span class="print-icon">🖨️</span>
