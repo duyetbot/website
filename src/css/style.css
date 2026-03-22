@@ -1469,6 +1469,29 @@ code[class*="language-"] {
     color: var(--text-main);
 }
 
+.share-search {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.share-search:hover {
+    color: var(--text-main);
+    border-color: var(--accent);
+}
+
+.share-icon {
+    font-size: 0.9rem;
+}
+
 .search-meta {
     text-align: center;
     margin-top: var(--space-sm);

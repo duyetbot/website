@@ -57,6 +57,10 @@
         </div>
         <div class="search-meta" id="search-meta">
             <span id="search-status">Type to search...</span>
+            <button id="share-search" class="share-search" style="display: none;" aria-label="Copy search link">
+                <span class="share-icon">🔗</span>
+                <span class="share-text">Copy link</span>
+            </button>
             <span class="search-shortcut"><kbd>↑↓</kbd> Navigate, <kbd>Enter</kbd> Open, <kbd>Esc</kbd> Clear</span>
         </div>
         <div id="tag-filters" class="tag-filters" style="display: none;">
@@ -132,6 +136,28 @@
     let allTags = [];
     let selectedTags = new Set();
 
+    // URL query parameter support for shareable searches
+    function updateURL(query, tags) {
+        const params = new URLSearchParams();
+        if (query) params.set('q', query);
+        if (tags.size > 0) params.set('tags', Array.from(tags).join(','));
+        const newURL = params.toString() ? `?${params}` : 'search.html';
+        history.replaceState(null, '', newURL);
+    }
+
+    function parseURLParams() {
+        const params = new URLSearchParams(window.location.search);
+        const query = params.get('q') || '';
+        const tagsParam = params.get('tags');
+        if (tagsParam) {
+            tagsParam.split(',').forEach(tag => {
+                const decoded = decodeURIComponent(tag);
+                if (decoded) selectedTags.add(decoded);
+            });
+        }
+        return query;
+    }
+
     // Load search index
     async function loadSearchIndex() {
         // Show skeleton while loading
@@ -145,10 +171,19 @@
             extractTags();
             renderTags();
 
-            // Hide skeleton, show empty state
+            // Initialize from URL parameters
+            const initialQuery = parseURLParams();
+            if (initialQuery || selectedTags.size > 0) {
+                searchInput.value = initialQuery;
+                if (selectedTags.size > 0) {
+                    updateTagsUI();
+                }
+            }
+
+            // Hide skeleton, perform initial search if needed
             skeletonResults.style.display = 'none';
-            searchEmpty.style.display = 'block';
-            searchEmpty.querySelector('#post-count').textContent = searchIndex.total;
+            performSearch(initialQuery, false);
+
         } catch (error) {
             console.error('Failed to load search index:', error);
             searchStatus.textContent = 'Search unavailable';
@@ -293,7 +328,7 @@
     }
 
     // Perform search
-    function performSearch(query) {
+    function performSearch(query, updateUrl = true) {
         if (!searchIndex) {
             searchResults.innerHTML = `
                 <div class="search-empty">
@@ -301,6 +336,11 @@
                 </div>
             `;
             return;
+        }
+
+        // Update URL parameters (skip during initial load to prevent duplicate history entries)
+        if (updateUrl) {
+            updateURL(query, selectedTags);
         }
 
         // If no query and no tags selected, show welcome message
@@ -333,6 +373,7 @@
 
         renderResults(results, query);
         searchClear.style.display = query || selectedTags.size > 0 ? 'block' : 'none';
+        document.getElementById('share-search').style.display = (query || selectedTags.size > 0) ? 'inline-flex' : 'none';
     }
 
     // Event listeners
@@ -345,6 +386,15 @@
         searchTimeout = setTimeout(() => {
             performSearch(query);
         }, 150);
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', () => {
+        selectedTags.clear();
+        const query = parseURLParams();
+        searchInput.value = query;
+        updateTagsUI();
+        performSearch(query, false);
     });
 
     searchInput.addEventListener('keydown', (e) => {
@@ -378,8 +428,27 @@
 
     searchClear.addEventListener('click', () => {
         searchInput.value = '';
+        selectedTags.clear();
+        updateTagsUI();
         performSearch('');
         searchInput.focus();
+    });
+
+    // Share search button
+    const shareSearchBtn = document.getElementById('share-search');
+    shareSearchBtn.addEventListener('click', async () => {
+        const url = window.location.href;
+        try {
+            await navigator.clipboard.writeText(url);
+            const shareText = shareSearchBtn.querySelector('.share-text');
+            const originalText = shareText.textContent;
+            shareText.textContent = 'Copied!';
+            setTimeout(() => {
+                shareText.textContent = originalText;
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
     });
 
     // Focus search on page load
