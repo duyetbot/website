@@ -1954,6 +1954,29 @@ def build_archive(posts):
     # Calculate total posts
     total_posts = len(posts)
 
+    # Collect all unique tags for filtering
+    all_tags = set()
+    for post in posts:
+        tags = post.get('tags', [])
+        if isinstance(tags, list):
+            all_tags.update(tags)
+    sorted_tags = sorted(all_tags)
+
+    # Generate tag filter HTML
+    tag_filter_html = ''
+    if sorted_tags:
+        tag_options = ''.join(f'<option value="{escape_xml(tag)}">{escape_xml(tag)}</option>' for tag in sorted_tags)
+        tag_filter_html = f'''
+<div class="archive-filter">
+    <label for="tag-filter" class="archive-filter-label">Filter by tag:</label>
+    <select id="tag-filter" class="archive-filter-select">
+        <option value="">All tags</option>
+        {tag_options}
+    </select>
+    <span id="filtered-count" class="filtered-count"></span>
+</div>
+'''
+
     content = f"""
 <header class="page-header">
     <h1>Archive</h1>
@@ -1962,9 +1985,70 @@ def build_archive(posts):
     <nav class="archive-navigation" aria-label="Jump to year">
         {year_nav}
     </nav>
+    {tag_filter_html}
 </header>
 
 {''.join(year_sections)}
+
+<script>
+(function() {{
+    const tagFilter = document.getElementById('tag-filter');
+    const filteredCount = document.getElementById('filtered-count');
+    if (!tagFilter) return;
+
+    // Collect all post data for filtering
+    const posts = document.querySelectorAll('.archive-post-item');
+
+    tagFilter.addEventListener('change', async () => {{
+        const selectedTag = tagFilter.value;
+        let visibleCount = 0;
+
+        // Load search data to get tag information
+        let searchIndex = {{ docs: [] }};
+        try {{
+            const response = await fetch('/search.json');
+            searchIndex = await response.json();
+        }} catch (e) {{
+            console.error('Failed to load search index');
+        }}
+
+        posts.forEach(post => {{
+            const link = post.querySelector('.archive-post-link');
+            if (!link) return;
+
+            const href = link.getAttribute('href');
+            const postData = searchIndex.docs.find(d => d.url.includes(href));
+            const postTags = postData ? postData.tags : [];
+
+            if (!selectedTag || postTags.includes(selectedTag)) {{
+                post.style.display = '';
+                visibleCount++;
+            }} else {{
+                post.style.display = 'none';
+            }}
+        }});
+
+        // Update month sections visibility
+        document.querySelectorAll('.archive-month').forEach(month => {{
+            const visiblePosts = month.querySelectorAll('.archive-post-item:not([style*="display: none"])');
+            month.style.display = visiblePosts.length > 0 ? '' : 'none';
+        }});
+
+        // Update year sections visibility
+        document.querySelectorAll('.archive-year').forEach(year => {{
+            const visibleMonths = year.querySelectorAll('.archive-month:not([style*="display: none"])');
+            year.style.display = visibleMonths.length > 0 ? '' : 'none';
+        }});
+
+        // Update filtered count
+        if (selectedTag) {{
+            filteredCount.textContent = `(${{visibleCount}} post${{visibleCount !== 1 ? 's' : ''}})`;
+        }} else {{
+            filteredCount.textContent = '';
+        }}
+    }});
+}})();
+</script>
 """
 
     # Generate JSON-LD with breadcrumbs for archive
