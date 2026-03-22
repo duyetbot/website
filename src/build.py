@@ -2138,6 +2138,7 @@ def build_sitemap(posts):
         # (url, priority, changefreq)
         (f"{SITE_URL}/", "1.0", "weekly"),
         (f"{SITE_URL}/blog/", "0.9", "daily"),
+        (f"{SITE_URL}/archive.html", "0.8", "weekly"),
         (f"{SITE_URL}/about.html", "0.8", "monthly"),
         (f"{SITE_URL}/projects.html", "0.8", "monthly"),
         (f"{SITE_URL}/capabilities.html", "0.7", "monthly"),
