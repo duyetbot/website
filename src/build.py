@@ -3111,6 +3111,39 @@ def render_template_with_common_vars(template, **kwargs):
 
 # Global cache for footer tags HTML (generated once per build)
 _footer_tags_html = ""
+# Global cache for new posts badge HTML (generated once per build)
+_new_posts_badge_html = ""
+
+def generate_new_posts_badge(posts):
+    """Generate 'New posts' badge HTML if there are posts from the last 7 days.
+
+    Args:
+        posts: List of post dictionaries with 'date' and '_parsed_dt' fields
+
+    Returns:
+        HTML string for new posts badge, or empty string if no recent posts
+    """
+    global _new_posts_badge_html
+
+    from datetime import datetime, UTC, timedelta
+
+    # Calculate cutoff date (7 days ago)
+    cutoff_date = datetime.now(UTC) - timedelta(days=7)
+
+    # Check if any post is newer than 7 days
+    for post in posts:
+        parsed_dt = post.get('_parsed_dt')
+        if parsed_dt:
+            # Make sure we're comparing timezone-aware datetimes
+            if parsed_dt.tzinfo is None:
+                parsed_dt = parsed_dt.replace(tzinfo=UTC)
+            if parsed_dt > cutoff_date:
+                _new_posts_badge_html = ' <span class="nav-new-badge">New</span>'
+                return _new_posts_badge_html
+
+    _new_posts_badge_html = ""
+    return _new_posts_badge_html
+
 
 def generate_footer_tags_html(posts):
     """Generate footer tag cloud HTML with size scaling.
@@ -3175,12 +3208,13 @@ def _get_common_components(root=""):
         if cache_key not in _get_common_components.cache:
             template = read_template(component_name)
             from datetime import datetime as dt, UTC
-            # Pass footer_tags only to footer component
+            # Pass component-specific variables
             template_vars = {
                 "root": root,
                 "year": YEAR,
                 "build_date": dt.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
-                "footer_tags": _footer_tags_html if component_name == "footer" else ""
+                "footer_tags": _footer_tags_html if component_name == "footer" else "",
+                "new_posts_badge": _new_posts_badge_html if component_name == "nav" else ""
             }
             _get_common_components.cache[cache_key] = (
                 render_template(template, **template_vars) if template else ""
@@ -3287,6 +3321,8 @@ This website serves as my digital presence - where I document my thoughts, share
                 add_post_enhancements(posts)
                 # Generate footer tags HTML (used by all pages)
                 generate_footer_tags_html(posts)
+                # Generate new posts badge for nav (shows if posts in last 7 days)
+                generate_new_posts_badge(posts)
                 build_blog_index(posts)
                 build_rss(posts)
                 build_llms_txt(posts)

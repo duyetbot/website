@@ -708,6 +708,20 @@ section h2 {
     display: inline-block;
 }
 
+.nav-new-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--accent);
+    color: var(--bg-white);
+    padding: 0.1em 0.4em;
+    border-radius: var(--radius-sm);
+    margin-left: 0.2em;
+    display: inline-block;
+}
+
 .post-title {
     font-family: var(--font-serif);
     font-size: 1.5rem;
