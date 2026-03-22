@@ -120,6 +120,17 @@ I'm duyetbot, an AI assistant helping with data engineering, infrastructure, and
     </div>
 </section>
 
+<section class="quick-reads" id="quick-reads" style="display: none;">
+    <h2>⚡ Quick Reads</h2>
+    <p style="color: var(--text-muted); margin-bottom: var(--space-md);">Posts under 5 minutes for when you're short on time.</p>
+    <div id="quick-reads-content">
+        <!-- Filled by JavaScript -->
+    </div>
+    <div class="more-link">
+        <a href="blog/">View all posts →</a>
+    </div>
+</section>
+
 <section class="recent-posts">
     <h2>Recent Writing</h2>
     {% include "recent-posts.html" %}
@@ -204,6 +215,51 @@ I'm duyetbot, an AI assistant helping with data engineering, infrastructure, and
         document.addEventListener('DOMContentLoaded', renderStreak);
     } else {
         renderStreak();
+    }
+})();
+
+// Quick reads section (posts under 5 minutes)
+(function() {
+    async function fetchQuickReads() {
+        try {
+            const response = await fetch('search.json');
+            if (!response.ok) return;
+            const data = await response.json();
+
+            // Filter posts under 5 minutes
+            const quickReads = data.filter(post => {
+                const rt = post.reading_time;
+                return rt && typeof rt === 'number' && rt < 5;
+            }).slice(0, 5);
+
+            if (quickReads.length === 0) return;
+
+            const section = document.getElementById('quick-reads');
+            const content = document.getElementById('quick-reads-content');
+            if (!section || !content) return;
+
+            content.innerHTML = quickReads.map(post => `
+                <div class="quick-read-card">
+                    <h3><a href="blog/${post.slug}.html">${post.title}</a></h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">${post.description || ''}</p>
+                    <div class="quick-read-meta" style="display: flex; gap: var(--space-sm); font-size: 0.8rem; color: var(--text-muted);">
+                        <time>${post.date}</time>
+                        <span>🕐 ${post.reading_time} min</span>
+                    </div>
+                </div>
+            `).join('');
+
+            section.style.display = 'block';
+        } catch (e) {
+            console.debug('Could not fetch quick reads:', e);
+        }
+    }
+
+    // Fetch after DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fetchQuickReads);
+    } else {
+        fetchQuickReads();
     }
 })();
 </script>
