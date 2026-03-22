@@ -2393,7 +2393,7 @@ def build_sitemap(posts):
 
 
 def build_rss(posts):
-    """Build RSS feed with content preview from cached metadata."""
+    """Build RSS feed with enhanced metadata and content."""
     # Get the most recent post date for lastBuildDate
     most_recent_dt = None
     for meta in posts:
@@ -2410,15 +2410,20 @@ def build_rss(posts):
         last_build_date = f"    <lastBuildDate>{most_recent_dt.strftime('%a, %d %b %Y %H:%M:%S %z')}</lastBuildDate>\n"
 
     rss = f"""<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
 <channel>
     <title>{SITE_NAME}</title>
     <link>{SITE_URL}/</link>
     <description>{SITE_DESCRIPTION}</description>
     <language>en-us</language>
-    <managingEditor>{escape_xml(AUTHOR_EMAIL)}</managingEditor>
+    <managingEditor>{escape_xml(AUTHOR_EMAIL)} ({SITE_AUTHOR})</managingEditor>
     <dc:creator>{escape_xml(SITE_AUTHOR)}</dc:creator>
     <dc:publisher>{escape_xml(SITE_NAME)}</dc:publisher>
+    <dc:language>en-us</dc:language>
 {last_build_date}
     <atom:link href="{SITE_URL}/rss.xml" rel="self" type="application/rss+xml">
 """
@@ -2426,11 +2431,27 @@ def build_rss(posts):
     for meta in sorted(posts, key=lambda x: x.get('date', ''), reverse=True)[:RSS_FEED_LIMIT]:
         title = meta.get('title', 'Untitled')
         slug = meta.get('slug', '')
-        description = escape_xml(meta.get('description', '')[:500])
+        description = meta.get('description', '')
 
-        # Use cached preview from build_post(), or fallback to description
+        # Build enhanced content with HTML formatting
         preview = meta.get('preview', '')
-        content_encoded = f"<content:encoded><![CDATA[{preview}]]></content:encoded>" if preview else ""
+        reading_time = meta.get('reading_time')
+
+        # Create content:encoded with better formatting
+        content_html = ""
+        if preview:
+            content_html = f"""<content:encoded><![CDATA[
+<div style="margin-top: 1em; line-height: 1.6;">
+{preview}
+</div>
+{f'<p style="margin-top: 1em; font-style: italic; color: #666;">🕐 {reading_time} min read</p>' if reading_time else ''}
+]]></content:encoded>"""
+
+        # Format description with reading time hint
+        description_with_time = description
+        if reading_time:
+            description_with_time = f"{description} 🕐 {reading_time} min read"
+        description_encoded = escape_xml(description_with_time[:500])
 
         # Format date properly for RFC 822 (use cached datetime if available)
         dt = meta.get('_parsed_dt')
@@ -2445,24 +2466,27 @@ def build_rss(posts):
             pub_date = f"{date_str}T00:00:00+00:00"
 
         # Add category elements for tags
-        tags = meta.get('tags', '')
-        tag_list = parse_tags(tags)
-        categories = "\n".join(f'        <category>{escape_xml(tag)}</category>' for tag in tag_list)
+        tags = meta.get('tags', [])
+        tag_list = parse_tags(tags) if isinstance(tags, list) else []
+        categories = "\n".join(f'        <category domain="{SITE_URL}/tags.html">{escape_xml(tag)}</category>' for tag in tag_list)
         if categories:
             categories += "\n"
 
-        author_element = f"        <author>{escape_xml(AUTHOR_EMAIL)}</author>\n"
+        author_element = f"        <author>{escape_xml(AUTHOR_EMAIL)} ({SITE_AUTHOR})</author>\n"
         dc_creator = f"        <dc:creator>{escape_xml(SITE_AUTHOR)}</dc:creator>\n"
+
+        # Add comments element
+        comments_element = f"        <comments>{SITE_URL}/blog/{slug}.html</comments>\n"
 
         rss += f"""
     <item>
         <title>{escape_xml(title)}</title>
         <link>{SITE_URL}/blog/{slug}.html</link>
-        <description>{description}</description>
+        <description>{description_encoded}</description>
         <pubDate>{pub_date}</pubDate>
-        <guid>{SITE_URL}/blog/{slug}.html</guid>
-{categories}{author_element}{dc_creator}
-        {content_encoded}
+        <guid isPermaLink="true">{SITE_URL}/blog/{slug}.html</guid>
+{categories}{author_element}{dc_creator}{comments_element}
+{content_html}
     </item>
 """
 
