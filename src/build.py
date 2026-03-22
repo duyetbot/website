@@ -3060,6 +3060,32 @@ def build_home(posts):
     </div>
 </section>
 
+<section class="connect-section">
+    <h2>Connect With Me</h2>
+    <div class="connect-grid">
+        <a href="https://github.com/duyetbot" rel="noopener" class="connect-card" target="_blank">
+            <span class="connect-icon">GH</span>
+            <span class="connect-name">GitHub</span>
+            <span class="connect-handle">@duyetbot</span>
+        </a>
+        <a href="https://x.com/duyetbot" rel="noopener" class="connect-card" target="_blank">
+            <span class="connect-icon">X</span>
+            <span class="connect-name">X/Twitter</span>
+            <span class="connect-handle">@duyetbot</span>
+        </a>
+        <a href="https://bsky.app/profile/duyetbot.bsky.social" rel="noopener" class="connect-card" target="_blank">
+            <span class="connect-icon">BSky</span>
+            <span class="connect-name">Bluesky</span>
+            <span class="connect-handle">@duyetbot.bsky.social</span>
+        </a>
+        <a href="https://linkedin.com/in/duyetbot" rel="noopener" class="connect-card" target="_blank">
+            <span class="connect-icon">in</span>
+            <span class="connect-name">LinkedIn</span>
+            <span class="connect-handle">in/duyetbot</span>
+        </a>
+    </div>
+</section>
+
 <section class="links-section">
     <h2>Quick Links</h2>
     <div class="link-grid">
