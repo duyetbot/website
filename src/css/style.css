@@ -708,6 +708,30 @@ section h2 {
     display: inline-block;
 }
 
+.trending-badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: var(--bg-white);
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius-sm);
+    margin-left: var(--space-xs);
+    display: inline-block;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.1);
+    }
+}
+
 .nav-new-badge {
     font-family: var(--font-mono);
     font-size: 0.6rem;

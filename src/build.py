@@ -171,6 +171,12 @@ NEW_POST_DAYS_THRESHOLD = 7  # Days for "New" badge
 MAX_TAGS_DISPLAY = 3  # Maximum tags to display in badges/lists
 NEW_BADGE_HTML = '<span class="new-badge">New</span>'
 
+# "Trending" badge constants
+TRENDING_MIN_VIEWS = 500  # Minimum views to be considered for trending
+TRENDING_VELOCITY_THRESHOLD = 10  # Minimum views per day to be trending
+TRENDING_MAX_DAYS_OLD = 30  # Posts older than this won't show trending badge
+TRENDING_BADGE_HTML = '<span class="trending-badge" title="High recent engagement">🔥 Trending</span>'
+
 # Homepage tag cloud constants
 HOME_TAG_CLOUD_SIZE = 8  # Number of popular tags to display
 HOME_TAG_FONT_SIZE_BASE_REM = 0.8  # Base font size in rem
@@ -831,6 +837,83 @@ def build_new_badge_html(parsed_dt, leading_space=False):
     """
     if is_post_new(parsed_dt):
         return (' ' if leading_space else '') + NEW_BADGE_HTML
+    return ''
+
+
+def calculate_view_velocity(parsed_dt):
+    """Calculate view velocity (views per day) for a post.
+
+    Args:
+        parsed_dt: Datetime object of post publish date
+
+    Returns:
+        Float representing views per day, or 0 if unable to calculate
+    """
+    if not parsed_dt:
+        return 0
+
+    aware_dt = ensure_timezone_aware(parsed_dt)
+    if not aware_dt:
+        return 0
+
+    days_old = (NOW - aware_dt).days
+    if days_old <= 0:
+        return 0
+
+    total_views = simulate_view_count(parsed_dt)
+    return total_views / days_old
+
+
+def is_post_trending(parsed_dt):
+    """Check if a post is considered "trending" based on view velocity.
+
+    A post is trending if it has:
+    - High view count (above TRENDING_MIN_VIEWS)
+    - High velocity (above TRENDING_VELOCITY_THRESHOLD views/day)
+    - Not too old (below TRENDING_MAX_DAYS_OLD)
+
+    Args:
+        parsed_dt: Datetime object of post publish date
+
+    Returns:
+        True if post is trending, False otherwise
+    """
+    if not parsed_dt:
+        return False
+
+    aware_dt = ensure_timezone_aware(parsed_dt)
+    if not aware_dt:
+        return False
+
+    days_old = (NOW - aware_dt).days
+
+    # Post too old to be trending
+    if days_old > TRENDING_MAX_DAYS_OLD:
+        return False
+
+    # Post too new to have meaningful velocity
+    if days_old < 1:
+        return False
+
+    total_views = simulate_view_count(parsed_dt)
+    velocity = calculate_view_velocity(parsed_dt)
+
+    return (total_views >= TRENDING_MIN_VIEWS and
+            velocity >= TRENDING_VELOCITY_THRESHOLD)
+
+
+def build_trending_badge_html(parsed_dt, leading_space=False):
+    """Generate "Trending" badge HTML for posts with high view velocity.
+
+    Args:
+        parsed_dt: Datetime object from post metadata
+        leading_space: Whether to include leading space (default: False)
+
+    Returns:
+        HTML string for badge, or empty string if post is not trending
+    """
+    if is_post_trending(parsed_dt):
+        return (' ' if leading_space else '') + TRENDING_BADGE_HTML
     return ''
 
 
@@ -1750,8 +1833,10 @@ def build_blog_index(posts):
             reading_time = meta.get('reading_time')
             tags = parse_tags(meta.get('tags', []))
 
-            # Generate new badge using helper
-            new_badge = build_new_badge_html(parsed_dt)
+            # Generate new and trending badges using helper
+            new_badge = build_new_badge_html(parsed_dt, leading_space=True)
+            trending_badge = build_trending_badge_html(parsed_dt, leading_space=True)
+            badges = new_badge + trending_badge
 
             # Generate tag badges (limit to module MAX_TAGS_DISPLAY)
             display_tags = tags[:MAX_TAGS_DISPLAY]
@@ -1762,7 +1847,7 @@ def build_blog_index(posts):
             post_list.append(f"""
 <article class="post-card" itemscope itemtype="https://schema.org/BlogPosting">
     {post_meta}
-    <h3 itemprop="headline"><a href="{slug}.html" itemprop="url">{title}</a>{new_badge}</h3>
+    <h3 itemprop="headline"><a href="{slug}.html" itemprop="url">{title}</a>{badges}</h3>
     <p itemprop="description">{description}</p>
     {tags_html}
 </article>
@@ -2963,8 +3048,10 @@ def build_home(posts):
         reading_time = post.get('reading_time')
         reading_time_badge = f' <span class="post-reading-time" aria-label="{reading_time} minute read">🕐 {reading_time}{READING_TIME_SUFFIX}</span>' if reading_time else ''
 
-        # Generate new badge using helper (with leading space for card title)
+        # Generate new and trending badges using helper (with leading space for card title)
         new_badge = build_new_badge_html(parsed_dt, leading_space=True)
+        trending_badge = build_trending_badge_html(parsed_dt, leading_space=True)
+        badges = new_badge + trending_badge
 
         # Add a gradient accent color (rotate through 3 colors)
         gradients = [
@@ -2983,7 +3070,7 @@ def build_home(posts):
                     {reading_time_badge}
                 </div>
                 <h3 class="post-card-title" itemprop="headline">
-                    <a href="blog/{post['slug']}.html" itemprop="url">{post['title']}</a>{new_badge}
+                    <a href="blog/{post['slug']}.html" itemprop="url">{post['title']}</a>{badges}
                 </h3>
                 <p class="post-card-excerpt" itemprop="description">{post.get('description', '')}</p>
                 <a href="blog/{post['slug']}.html" class="post-card-link">Read more →</a>
