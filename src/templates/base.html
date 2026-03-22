@@ -537,6 +537,66 @@
     updateProgress();
 })();
 
+// Recently viewed posts tracking (all pages)
+(function() {
+    const RECENTLY_VIEWED_KEY = 'recentlyViewed';
+    const MAX_RECENT = 10;
+
+    function getRecentlyViewed() {
+        try {
+            const stored = localStorage.getItem(RECENTLY_VIEWED_KEY);
+            return stored ? JSON.parse(stored) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveRecentlyViewed(items) {
+        try {
+            localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(items));
+        } catch (e) {
+            // Storage might be full or disabled
+            console.debug('Could not save recently viewed:', e);
+        }
+    }
+
+    function addRecentlyViewed() {
+        const url = window.location.pathname;
+        // Skip non-content pages
+        if (url.includes('/search.html') || url.includes('/tags.html') ||
+            url.includes('/archive.html') || url.endsWith('/robots.txt') ||
+            url.endsWith('/rss.xml') || url.endsWith('/sitemap.xml') ||
+            url.endsWith('/llms.txt') || url.includes('/css/') || url.includes('/blog/')) {
+            return;
+        }
+
+        const title = document.title?.split('//')[0]?.trim() || '';
+        if (!title) return;
+
+        let recent = getRecentlyViewed();
+
+        // Remove if already exists (to move to top)
+        recent = recent.filter(item => item.url !== url);
+
+        // Add to front
+        recent.unshift({ url, title, timestamp: Date.now() });
+
+        // Keep only MAX_RECENT items
+        if (recent.length > MAX_RECENT) {
+            recent = recent.slice(0, MAX_RECENT);
+        }
+
+        saveRecentlyViewed(recent);
+    }
+
+    // Track after page loads
+    if (document.readyState === 'complete') {
+        addRecentlyViewed();
+    } else {
+        window.addEventListener('load', addRecentlyViewed);
+    }
+})();
+
 // TOC active section highlighting and progress (blog posts only)
 (function() {
     const toc = document.querySelector('.toc');
