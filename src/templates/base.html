@@ -51,6 +51,8 @@
 
     {{ json_ld }}
 
+    <!-- Preload critical CSS for faster rendering -->
+    <link rel="preload" href="{{ root }}css/style.min.css" as="style">
     <link rel="stylesheet" href="{{ root }}css/style.min.css">
     <link rel="alternate" type="application/rss+xml" title="duyetbot Blog RSS" href="https://bot.duyet.net/rss.xml">
 {{ prism }}
@@ -543,6 +545,7 @@
     if (!isBlogPost) return;
 
     let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const originalTitle = document.title;
 
     function updateProgress() {
         const scrollTop = window.scrollY;
@@ -550,6 +553,15 @@
         const progressRounded = Math.round(progress);
         progressBar.style.width = `${progress}%`;
         progressBar.dataset.progress = `${progressRounded}%`;
+
+        // Update title with progress percentage
+        if (progressRounded > 0 && progressRounded < 100) {
+            document.title = `${progressRounded}% - ${originalTitle}`;
+        } else if (progressRounded >= 100) {
+            document.title = `✓ ${originalTitle}`;
+        } else {
+            document.title = originalTitle;
+        }
     }
 
     // Recalculate on resize

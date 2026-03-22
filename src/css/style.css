@@ -5023,6 +5023,24 @@ mark {
    ============================================ */
 
 @media print {
+    /* Force light mode for printing regardless of current theme */
+    :root,
+    [data-theme="dark"],
+    [data-theme="light"] {
+        --bg-paper: #ffffff !important;
+        --bg-white: #ffffff !important;
+        --text-main: #1a1a1a !important;
+        --text-muted: #666666 !important;
+        --border: #dddddd !important;
+        --accent: #0066cc !important;
+        color-scheme: light !important;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #1a1a1a !important;
+    }
+
     /* Show breadcrumbs in print for context */
     .breadcrumbs {
         display: block;
