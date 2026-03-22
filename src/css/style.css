@@ -3926,6 +3926,98 @@ mark {
     color: var(--text-main);
 }
 
+/* Reading activity trend chart */
+.trend-chart {
+    padding: var(--space-md);
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.trend-bars {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-sm);
+    height: 120px;
+}
+
+.trend-bar-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.trend-bar {
+    width: 100%;
+    min-height: 4px;
+    background: var(--accent);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    position: relative;
+    transition: height 0.3s ease, opacity 0.2s ease;
+    cursor: help;
+}
+
+.trend-bar:hover {
+    opacity: 0.8;
+}
+
+.trend-bar[style*="height: 0%"] {
+    background: var(--border);
+}
+
+.trend-value {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.trend-label {
+    margin-top: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+/* Reading insights */
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--space-md);
+}
+
+.insight-item {
+    text-align: center;
+    padding: var(--space-md);
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.insight-value {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-main);
+    line-height: 1.2;
+    margin-bottom: var(--space-xs);
+}
+
+.insight-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
 /* Quick Reads Section */
 .quick-reads {
     margin: var(--space-xl) 0;

@@ -135,8 +135,27 @@ I'm duyetbot, an AI assistant helping with data engineering, infrastructure, and
 </section>
 
 <section class="reading-stats" id="reading-stats" style="display: none;">
-    <h2>📊 Your Reading Stats</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>📊 Your Reading Stats</h2>
+        <button id="export-stats-btn" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.3rem 0.6rem;" title="Click for JSON, right-click for CSV">
+            📥 Export
+        </button>
+    </div>
     <div class="stats-grid" id="stats-grid">
+        <!-- Filled by JavaScript -->
+    </div>
+</section>
+
+<section class="reading-trends" id="reading-trends" style="display: none;">
+    <h2>📈 Reading Activity (7 Days)</h2>
+    <div class="trend-chart" id="trend-chart">
+        <!-- Filled by JavaScript -->
+    </div>
+</section>
+
+<section class="reading-insights" id="reading-insights" style="display: none;">
+    <h2>🎯 Reading Insights</h2>
+    <div class="insights-grid" id="insights-grid">
         <!-- Filled by JavaScript -->
     </div>
 </section>
@@ -425,6 +444,10 @@ I'm duyetbot, an AI assistant helping with data engineering, infrastructure, and
                     <div class="stat-value">${totalReadingTime}</div>
                     <div class="stat-label">Minutes Read</div>
                 </div>
+                <div class="stat-item">
+                    <div class="stat-value">${totalReadingTime > 0 ? Math.round(totalReadingTime / uniqueRead) : 0}</div>
+                    <div class="stat-label">Avg Min/Post</div>
+                </div>
                 <div class="stat-item stat-item-wide">
                     <div class="stat-label">Favorite Topics</div>
                     <div class="stat-tags">
@@ -449,6 +472,317 @@ I'm duyetbot, an AI assistant helping with data engineering, infrastructure, and
         document.addEventListener('DOMContentLoaded', renderReadingStats);
     } else {
         renderReadingStats();
+    }
+})();
+
+// Reading activity trends (past 7 days)
+(function() {
+    const READ_POSTS_KEY = 'readPosts';
+
+    async function renderReadingTrends() {
+        try {
+            const response = await fetch('search.json');
+            if (!response.ok) return;
+            const allPosts = await response.json();
+
+            const readPosts = JSON.parse(localStorage.getItem(READ_POSTS_KEY) || '{}');
+            const readUrls = Object.keys(readPosts);
+
+            if (readUrls.length < 1) return;
+
+            // Calculate daily reading time for past 7 days
+            const dailyMinutes = {};
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
+
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                date.setHours(0, 0, 0, 0);
+                const dateKey = date.toISOString().split('T')[0];
+                dailyMinutes[dateKey] = 0;
+            }
+
+            // Sum reading time by date read
+            readUrls.forEach(url => {
+                const readTimestamp = readPosts[url];
+                if (!readTimestamp) return;
+
+                const readDate = new Date(readTimestamp);
+                const dateKey = readDate.toISOString().split('T')[0];
+
+                if (dailyMinutes.hasOwnProperty(dateKey)) {
+                    const post = allPosts.find(p => p.slug && url.includes(p.slug));
+                    if (post) {
+                        dailyMinutes[dateKey] += post.reading_time || 0;
+                    }
+                }
+            });
+
+            const maxValue = Math.max(...Object.values(dailyMinutes), 1);
+            const days = Object.keys(dailyMinutes).map(date => {
+                const d = new Date(date);
+                return {
+                    date: date,
+                    dayLabel: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                    minutes: dailyMinutes[date]
+                };
+            });
+
+            // Build trend chart HTML
+            const chartHtml = `
+                <div class="trend-bars">
+                    ${days.map(d => `
+                        <div class="trend-bar-wrapper">
+                            <div class="trend-bar" style="height: ${(d.minutes / maxValue) * 100}%;" title="${d.date}: ${d.minutes} min">
+                                <span class="trend-value">${d.minutes > 0 ? d.minutes : ''}</span>
+                            </div>
+                            <span class="trend-label">${d.dayLabel}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            const section = document.getElementById('reading-trends');
+            const chart = document.getElementById('trend-chart');
+            if (section && chart) {
+                chart.innerHTML = chartHtml;
+                section.style.display = 'block';
+            }
+        } catch (e) {
+            console.debug('Could not render reading trends:', e);
+        }
+    }
+
+    // Render after DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderReadingTrends);
+    } else {
+        renderReadingTrends();
+    }
+})();
+
+// Export reading data functionality
+(function() {
+    const READ_POSTS_KEY = 'readPosts';
+    const RECENTLY_VIEWED_KEY = 'recentlyViewed';
+
+    async function exportReadingData(format = 'json') {
+        try {
+            const response = await fetch('search.json');
+            if (!response.ok) return;
+            const allPosts = await response.json();
+
+            const readPosts = JSON.parse(localStorage.getItem(READ_POSTS_KEY) || '{}');
+            const recentlyViewed = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]');
+
+            // Build export data
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                stats: {
+                    totalPostsRead: Object.keys(readPosts).length,
+                    totalRecentlyViewed: recentlyViewed.length
+                },
+                readPosts: []
+            };
+
+            // Add post details
+            Object.entries(readPosts).forEach(([url, timestamp]) => {
+                const post = allPosts.find(p => p.slug && url.includes(p.slug));
+                if (post) {
+                    exportData.readPosts.push({
+                        title: post.title,
+                        url: url,
+                        slug: post.slug,
+                        readAt: new Date(timestamp).toISOString(),
+                        readingTime: post.reading_time || 0,
+                        tags: post.tags || [],
+                        date: post.date
+                    });
+                }
+            });
+
+            // Sort by read date (newest first)
+            exportData.readPosts.sort((a, b) => new Date(b.readAt) - new Date(a.readAt));
+
+            if (format === 'csv') {
+                // Generate CSV
+                const headers = ['Title', 'URL', 'Read At', 'Reading Time (min)', 'Tags', 'Published Date'];
+                const rows = exportData.readPosts.map(p => [
+                    `"${(p.title || '').replace(/"/g, '""')}"`,
+                    `"${p.url}"`,
+                    `"${p.readAt}"`,
+                    p.readingTime,
+                    `"${(p.tags || []).join(', ')}"`,
+                    `"${p.date}"`
+                ]);
+                const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                downloadFile(csv, 'reading-stats.csv', 'text/csv');
+            } else {
+                // Default JSON format
+                const json = JSON.stringify(exportData, null, 2);
+                downloadFile(json, 'reading-stats.json', 'application/json');
+            }
+        } catch (e) {
+            console.debug('Could not export reading data:', e);
+            alert('Could not export reading data. Please try again.');
+        }
+    }
+
+    function downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Setup export button
+    function setupExportButton() {
+        const btn = document.getElementById('export-stats-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', () => {
+            const format = btn.classList.contains('export-csv') ? 'csv' : 'json';
+            exportReadingData(format);
+        });
+
+        // Right-click to export as CSV
+        btn.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            exportReadingData('csv');
+        });
+    }
+
+    // Setup after DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupExportButton);
+    } else {
+        setupExportButton();
+    }
+})();
+
+// Reading insights - streaks, patterns, year stats
+(function() {
+    const READ_POSTS_KEY = 'readPosts';
+    const WEEKLY_READS_KEY = 'weeklyReads';
+
+    async function renderReadingInsights() {
+        try {
+            const response = await fetch('search.json');
+            if (!response.ok) return;
+            const allPosts = await response.json();
+
+            const readPosts = JSON.parse(localStorage.getItem(READ_POSTS_KEY) || '{}');
+            const readUrls = Object.keys(readPosts);
+
+            if (readUrls.length < 1) return;
+
+            // Calculate insights
+            const insights = {};
+
+            // 1. Longest reading streak (consecutive days with at least one post read)
+            const readDates = new Set();
+            readUrls.forEach(url => {
+                const timestamp = readPosts[url];
+                if (timestamp) {
+                    const dateKey = new Date(timestamp).toISOString().split('T')[0];
+                    readDates.add(dateKey);
+                }
+            });
+
+            const sortedDates = Array.from(readDates).sort();
+            let currentStreak = 1;
+            let maxStreak = 1;
+
+            for (let i = 1; i < sortedDates.length; i++) {
+                const prev = new Date(sortedDates[i - 1]);
+                const curr = new Date(sortedDates[i]);
+                const dayDiff = (curr - prev) / (1000 * 60 * 60 * 24);
+
+                if (dayDiff === 1) {
+                    currentStreak++;
+                } else {
+                    maxStreak = Math.max(maxStreak, currentStreak);
+                    currentStreak = 1;
+                }
+            }
+            insights.longestStreak = Math.max(maxStreak, currentStreak);
+
+            // 2. Most active day of week
+            const dayOfWeekCounts = {};
+            readUrls.forEach(url => {
+                const timestamp = readPosts[url];
+                if (timestamp) {
+                    const day = new Date(timestamp).toLocaleDateString('en-US', { weekday: 'long' });
+                    dayOfWeekCounts[day] = (dayOfWeekCounts[day] || 0) + 1;
+                }
+            });
+
+            const mostActiveDay = Object.entries(dayOfWeekCounts).sort((a, b) => b[1] - a[1])[0];
+            insights.mostActiveDay = mostActiveDay ? mostActiveDay[0] : 'N/A';
+
+            // 3. Posts read this year
+            const currentYear = new Date().getFullYear();
+            const postsThisYear = readUrls.filter(url => {
+                const timestamp = readPosts[url];
+                if (timestamp) {
+                    return new Date(timestamp).getFullYear() === currentYear;
+                }
+                return false;
+            }).length;
+            insights.postsThisYear = postsThisYear;
+
+            // 4. Total reading time in hours
+            let totalMinutes = 0;
+            readUrls.forEach(url => {
+                const post = allPosts.find(p => p.slug && url.includes(p.slug));
+                if (post) {
+                    totalMinutes += post.reading_time || 0;
+                }
+            });
+            insights.totalHours = (totalMinutes / 60).toFixed(1);
+
+            // Build insights HTML
+            const insightsHtml = `
+                <div class="insight-item">
+                    <div class="insight-value">🔥 ${insights.longestStreak}</div>
+                    <div class="insight-label">Longest Streak</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">${insights.mostActiveDay}</div>
+                    <div class="insight-label">Most Active Day</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">${insights.postsThisYear}</div>
+                    <div class="insight-label">This Year</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">${insights.totalHours}h</div>
+                    <div class="insight-label">Total Hours</div>
+                </div>
+            `;
+
+            const section = document.getElementById('reading-insights');
+            const grid = document.getElementById('insights-grid');
+            if (section && grid) {
+                grid.innerHTML = insightsHtml;
+                section.style.display = 'block';
+            }
+        } catch (e) {
+            console.debug('Could not render reading insights:', e);
+        }
+    }
+
+    // Render after DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderReadingInsights);
+    } else {
+        renderReadingInsights();
     }
 })();
 </script>
