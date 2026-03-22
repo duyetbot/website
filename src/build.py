@@ -1897,6 +1897,8 @@ def build_pages(pages):
 
 def build_sitemap(posts):
     """Build sitemap.xml with lastmod dates, priority, and changefreq for SEO."""
+    from datetime import datetime, timedelta
+
     # Static pages with priority and changefreq (homepage highest priority)
     static_pages = [
         # (url, priority, changefreq)
@@ -1933,7 +1935,10 @@ def build_sitemap(posts):
     <changefreq>{changefreq}</changefreq>
   </url>""")
 
-    # Add blog posts with lastmod, priority, and changefreq
+    # Calculate freshness threshold for dynamic priority (UTC)
+    six_months_ago = datetime.now(timezone.utc) - timedelta(days=180)
+
+    # Add blog posts with lastmod, dynamic priority, and changefreq
     for meta in posts:
         slug = meta.get('slug', '')
         url = f"{SITE_URL}/blog/{slug}.html"
@@ -1941,6 +1946,9 @@ def build_sitemap(posts):
         # Add lastmod if date available (use cached parsed datetime if available)
         date_str = meta.get('date', '')
         lastmod_xml = ""
+        priority = "0.7"  # Default priority for older posts
+        changefreq = "monthly"
+
         if date_str:
             # Check if datetime was already parsed and cached
             parsed_dt = meta.get('_parsed_dt') or _parse_datetime(date_str)
@@ -1948,12 +1956,29 @@ def build_sitemap(posts):
                 # Format as YYYY-MM-DD for sitemap
                 lastmod_xml = f"    <lastmod>{parsed_dt.strftime('%Y-%m-%d')}</lastmod>"
 
+                # Ensure parsed_dt is timezone-aware for comparison
+                compare_dt = parsed_dt
+                if compare_dt.tzinfo is None:
+                    compare_dt = compare_dt.replace(tzinfo=timezone.utc)
+
+                # Dynamic priority based on recency
+                if compare_dt > six_months_ago:
+                    # Recent posts (within 6 months) get higher priority
+                    priority = "0.9"
+                    changefreq = "weekly"
+                elif compare_dt > six_months_ago - timedelta(days=180):
+                    # Posts 6-12 months old
+                    priority = "0.8"
+                else:
+                    # Older posts
+                    priority = "0.7"
+
         # Build XML element with blog-specific SEO metadata
         url_elements.append(f"""  <url>
     <loc>{url}</loc>
 {lastmod_xml}
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
+    <priority>{priority}</priority>
+    <changefreq>{changefreq}</changefreq>
   </url>""")
 
     sitemap = f"""<?xml version="1.0" encoding="UTF-8"?>
