@@ -1025,6 +1025,26 @@ section h2 {
     font-size: 0.75rem;
 }
 
+/* Nav button tooltips (visible on hover) */
+.theme-toggle:hover::before,
+.font-size-controls:hover::before {
+    content: attr(aria-label);
+    position: absolute;
+    bottom: -2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.3em 0.6em;
+    background: var(--text-main);
+    color: var(--bg-white);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0.95;
+    z-index: 100;
+}
+
 /* Focus mode - hides distractions for reading */
 body.focus-mode .site-nav,
 body.focus-mode .site-footer,
