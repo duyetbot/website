@@ -822,7 +822,7 @@ def generate_article_meta_tags(meta):
     """Generate Open Graph article meta tags for blog posts.
 
     Args:
-        meta: Post metadata dict with date, tags, author, etc.
+        meta: Post metadata dict with date, modified, tags, author, etc.
 
     Returns:
         HTML string with article meta tags, or empty string if not applicable
@@ -834,6 +834,15 @@ def generate_article_meta_tags(meta):
     iso_date = _format_iso_date(dt)
     if iso_date:
         parts.append(f'    <meta property="article:published_time" content="{iso_date}">')
+
+    # Article modified time (use 'modified' frontmatter, or default to published time)
+    modified_dt = dt
+    modified_str = meta.get('modified') or meta.get('last_modified')
+    if modified_str:
+        modified_dt = _parse_datetime(modified_str)
+    modified_iso = _format_iso_date(modified_dt or dt)
+    if modified_iso:
+        parts.append(f'    <meta property="article:modified_time" content="{modified_iso}">')
 
     # Article author
     author = meta.get('author', 'duyetbot')
@@ -863,6 +872,13 @@ def generate_json_ld_article(meta, url, reading_time=None, word_count=None):
     # Ensure timezone-aware ISO 8601 format (append UTC if naive)
     iso_date = _format_iso_date(dt) or date_str
 
+    # Get modified date from frontmatter, or default to published date
+    modified_dt = dt
+    modified_str = meta.get('modified') or meta.get('last_modified')
+    if modified_str:
+        modified_dt = _parse_datetime(modified_str)
+    iso_modified = _format_iso_date(modified_dt) or iso_date
+
     # Extract commonly used meta values
     title = meta.get('title', 'Untitled')
     description = meta.get('description', '')
@@ -882,7 +898,7 @@ def generate_json_ld_article(meta, url, reading_time=None, word_count=None):
         "url": url,
         "description": description,
         "datePublished": iso_date,
-        "dateModified": iso_date,
+        "dateModified": iso_modified,
         "author": _get_json_ld_author(),
         "publisher": _get_json_ld_publisher(include_logo=True),
         "inLanguage": IN_LANGUAGE,
