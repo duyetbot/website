@@ -232,6 +232,31 @@
                     }
                 }
             }
+
+            // N/P keys to navigate to next/previous heading in article
+            if ((e.key === 'n' || e.key === 'p') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                const isBlogPost = /\/blog\/\d{4}-\d{2}-\d{2}/.test(window.location.pathname);
+                if (!isBlogPost) return;
+
+                const headings = document.querySelectorAll('.article-content h2, .article-content h3');
+                if (headings.length === 0) return;
+
+                // Find current heading based on scroll position
+                let currentIndex = -1;
+                const scrollY = window.scrollY + 100; // Offset for header
+                for (let i = 0; i < headings.length; i++) {
+                    if (headings[i].offsetTop > scrollY) break;
+                    currentIndex = i;
+                }
+
+                if (e.key === 'n' && currentIndex < headings.length - 1) {
+                    e.preventDefault();
+                    headings[currentIndex + 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else if (e.key === 'p' && currentIndex > 0) {
+                    e.preventDefault();
+                    headings[currentIndex - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
         });
 
         // Modal close handlers
@@ -306,6 +331,8 @@
                 <dd>Reset font size</dd>
                 <dt><kbd>←</kbd> <kbd>→</kbd></dt>
                 <dd>Previous/next post (blog only)</dd>
+                <dt><kbd>n</kbd> <kbd>p</kbd></dt>
+                <dd>Next/prev heading (blog only)</dd>
             </dl>
         </div>
     </div>
