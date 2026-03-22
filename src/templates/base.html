@@ -88,6 +88,20 @@
 
         window.toggleTheme = toggleTheme;
 
+        // Sync theme across tabs using storage event
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme' && e.newValue) {
+                const newTheme = e.newValue === THEMES.LIGHT ? THEMES.LIGHT : THEMES.DARK;
+                applyTheme(newTheme);
+            }
+            if (e.key === FONT_SIZE_KEY && e.newValue) {
+                const newSize = parseFloat(e.newValue);
+                if (!isNaN(newSize) && SIZE_VALUES.includes(newSize)) {
+                    applyFontSize(newSize);
+                }
+            }
+        });
+
         // Font size controls
         const FONT_SIZES = { SMALL: 0.875, MEDIUM: 1, LARGE: 1.125, XLARGE: 1.25 };
         const DEFAULT_FONT_SIZE = FONT_SIZES.MEDIUM;
