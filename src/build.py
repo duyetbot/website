@@ -1361,6 +1361,13 @@ def build_post(filepath):
     <p>Enjoyed this article? <a href="{SITE_URL}/rss.xml">Subscribe to the RSS feed</a> to get notified about new posts.</p>
 </section>
 
+<nav class="quick-nav-dock" aria-label="Quick navigation">
+    <a href="#top" aria-label="Back to top">↑</a>
+    <a href="{SITE_URL}/search.html" aria-label="Search">🔍</a>
+    <a href="{SITE_URL}/rss.xml" aria-label="RSS feed">📡</a>
+    <a href="index.html" aria-label="Blog index">📝</a>
+</nav>
+
 <section id="comments" class="comments-section" aria-labelledby="comments-title">
     <h2 id="comments-title">Comments</h2>
     <p class="comments-placeholder">

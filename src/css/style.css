@@ -1615,6 +1615,50 @@ details[open] .toc-toggle::after {
     border-bottom-color: var(--accent);
 }
 
+/* Quick Navigation Dock for Blog Posts */
+.quick-nav-dock {
+    position: fixed;
+    bottom: var(--space-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--space-sm);
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+    padding: var(--space-sm) var(--space-md);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 99;
+}
+
+.quick-nav-dock.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.quick-nav-dock a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--bg-paper);
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    font-size: 1rem;
+}
+
+.quick-nav-dock a:hover {
+    background: var(--accent);
+    color: var(--bg-white);
+    transform: translateY(-2px);
+}
+
 @media (max-width: 600px) {
     .share-links {
         flex-direction: column;
