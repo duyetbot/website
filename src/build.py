@@ -161,6 +161,8 @@ _PRISM_CDN_BASE = f"https://cdnjs.cloudflare.com/ajax/libs/prism/{_PRISM_VERSION
 _PRISM_JS_HTML = f'''
 <!-- Prism.js Syntax Highlighting -->
 <link rel="stylesheet" href="{_PRISM_CDN_BASE}/themes/prism-tomorrow.min.css">
+<link rel="stylesheet" href="{_PRISM_CDN_BASE}/plugins/line-numbers/prism-line-numbers.min.css">
+<link rel="stylesheet" href="{_PRISM_CDN_BASE}/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.css">
 <script>
 /* Prevent Prism from auto-highlighting on load (we'll trigger manually) */
 window.Prism = window.Prism || {{}};
@@ -170,7 +172,18 @@ window.Prism.manual = true;
 <!-- Prism.js Syntax Highlighting -->
 <script src="{_PRISM_CDN_BASE}/prism.min.js"></script>
 <script src="{_PRISM_CDN_BASE}/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="{_PRISM_CDN_BASE}/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="{_PRISM_CDN_BASE}/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
 <script>
+// Configure Prism plugins
+Prism.plugins.copyToClipboard = function(text) {{
+    navigator.clipboard.writeText(text).then(function() {{
+        // Success feedback is handled by the plugin
+    }}, function(err) {{
+        console.error('Failed to copy code:', err);
+    }};
+}};
+
 // Trigger syntax highlighting after DOM is ready
 document.addEventListener("DOMContentLoaded", function() {{
     if (window.Prism) {{
@@ -663,7 +676,7 @@ def markdown_to_html(text):
 <button class="code-copy-btn" aria-label="Copy code to clipboard" data-code="{code_attr}">
 <span class="copy-icon">Copy</span>
 </button>
-<pre><code {lang_class}>{escaped_code}</code></pre>
+<pre class="line-numbers" {lang_class}>{escaped_code}</code></pre>
 </div>'''
         text = text.replace(f"__CODE_BLOCK_{i}__", code_html)
 

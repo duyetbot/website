@@ -1530,6 +1530,13 @@ pre code {
 
 .code-copy-btn.copied {
     background: #28a745;
+    animation: copySuccess 0.3s ease;
+}
+
+@keyframes copySuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 .code-copy-btn .copy-icon {
@@ -1539,6 +1546,15 @@ pre code {
 /* Adjust language label position when copy button is present */
 .code-lang {
     right: 60px;
+}
+
+/* Hide Prism's default copy button (we have a custom one) */
+div.code-toolbar {
+    position: relative;
+}
+
+div.code-toolbar > .toolbar {
+    display: none;
 }
 
 @media (max-width: 600px) {
