@@ -1777,33 +1777,53 @@ def add_post_enhancements(posts):
                 related_html = ''.join(related_html_parts)
             else:
                 related_html = None
-        else:
-            # Fallback: show recent posts if current post has no tags
-            recent_posts = [p for p in sorted_posts if p.get('slug') != slug][:MAX_RELATED]
-            if recent_posts:
-                related_html_parts = ['<section class="related-posts">\n    <h3>Recent Posts</h3>\n    <div class="related-posts-list">\n']
-                for r in recent_posts:
-                    r_tags = slug_to_display_tags.get(r.get('slug', ''), [])
-                    tag_badges = ''.join(f'<span class="related-tag">{escape_xml(tag)}</span>' for tag in r_tags) if r_tags else ''
 
-                    related_html_parts.append(f'''        <article class="related-post-card">
-            <h4><a href="{r.get("slug")}.html">{escape_xml(r.get("title", "Untitled"))}</a></h4>
+        # Calculate similar by reading time
+        similar_length_html = None
+        current_rt = post.get('reading_time')
+        if current_rt:
+            # Find posts within ±2 minutes of current post's reading time
+            rt_range = (current_rt - 2, current_rt + 2)
+            similar = []
+            for other in posts:
+                if other.get('slug') == slug:
+                    continue
+                other_rt = other.get('reading_time')
+                if other_rt and rt_range[0] <= other_rt <= rt_range[1]:
+                    similar.append({
+                        'slug': other.get('slug'),
+                        'title': other.get('title', 'Untitled'),
+                        'date': other.get('date', ''),
+                        'reading_time': other_rt
+                    })
+
+            # Sort by how close the reading time is, then by date
+            if similar:
+                similar.sort(key=lambda x: (abs(x['reading_time'] - current_rt), x['date']), reverse=False)
+                similar = similar[:MAX_RELATED]
+
+                similar_html_parts = ['<section class="related-posts">\n    <h3>Similar Length</h3>\n    <div class="related-posts-list">\n']
+                for s in similar:
+                    s_tags = slug_to_display_tags.get(s['slug'], [])
+                    tag_badges = ''.join(f'<span class="related-tag">{escape_xml(tag)}</span>' for tag in s_tags) if s_tags else ''
+
+                    similar_html_parts.append(f'''        <article class="related-post-card">
+            <h4><a href="{s['slug']}.html">{escape_xml(s['title'])}</a></h4>
             <div class="related-post-meta">
-                <time>{r.get("date", "")}</time>
+                <time>{s['date']}</time>
+                <span class="post-reading-time">🕐 {s['reading_time']} min read</span>
                 {f'<div class="related-tags">{tag_badges}</div>' if tag_badges else ''}
             </div>
         </article>\n''')
-                related_html_parts.append('    </div>\n</section>\n')
-                related_html = ''.join(related_html_parts)
-            else:
-                related_html = None
+                similar_html_parts.append('    </div>\n</section>\n')
+                similar_length_html = ''.join(similar_html_parts)
 
-        enhancements[slug] = {'nav': nav_html, 'related': related_html, 'series': series_nav_html}
+        enhancements[slug] = {'nav': nav_html, 'related': related_html, 'series': series_nav_html, 'similar_length': similar_length_html}
 
     # Apply enhancements to HTML files (single read/write per post)
     for slug, enhancement in enhancements.items():
         # Skip if no enhancements to apply (saves file I/O)
-        if not enhancement.get('nav') and not enhancement.get('related') and not enhancement.get('series'):
+        if not enhancement.get('nav') and not enhancement.get('related') and not enhancement.get('series') and not enhancement.get('similar_length'):
             continue
 
         html_path = BLOG_DIR / f"{slug}.html"
@@ -1831,6 +1851,25 @@ def add_post_enhancements(posts):
                 else:
                     # Fallback: try inserting after article close
                     content = content.replace('</article>\n', f'</article>\n\n{enhancement["related"]}\n')
+
+            # Add similar length section after related posts (or after article if no related)
+            if enhancement['similar_length']:
+                # Find where to insert - after related posts or after article
+                if enhancement['related']:
+                    # Insert after related posts section
+                    marker = '</section>\n\n<footer class="article-author-bio">'
+                    if marker in content:
+                        content = content.replace(marker, f'{enhancement["similar_length"]}\n{marker}')
+                    else:
+                        # Fallback: insert at end of article
+                        content = content.replace('</article>\n', f'</article>\n\n{enhancement["similar_length"]}\n')
+                else:
+                    # No related posts, insert after article
+                    marker = '</article>\n\n<footer class="article-author-bio">'
+                    if marker in content:
+                        content = content.replace(marker, f'</article>\n\n{enhancement["similar_length"]}\n<footer class="article-author-bio">')
+                    else:
+                        content = content.replace('</article>\n', f'</article>\n\n{enhancement["similar_length"]}\n')
 
             html_path.write_text(content)
         except IOError as e:
