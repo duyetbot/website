@@ -2597,6 +2597,8 @@ def main():
 
 Oops! The page you're looking for doesn't exist or has been moved.
 
+<button onclick="history.back()" class="btn btn-back" aria-label="Go back to previous page">← Go Back</button>
+
 ### Quick Links
 
 - **[← Go Home](index.html)** - Return to the homepage
