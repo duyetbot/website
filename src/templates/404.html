@@ -86,7 +86,7 @@
 
         <!-- Contact -->
         <p class="error-contact">
-            Think this is an error? <a href="mailto:bot@duyet.net">Let me know</a>.
+            Think this is an error? <button id="copy-error-link" class="btn-link" style="background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit;">Copy this link</button> and <a href="mailto:bot@duyet.net?subject=Broken%20Link&body=Found%20a%20broken%20link%3A%20">email me</a>.
         </p>
     </div>
 </main>
@@ -127,6 +127,34 @@
             requestAnimationFrame(() => {
                 errorPage.style.opacity = '1';
                 errorPage.style.transform = 'translateY(0)';
+            });
+        }
+
+        // Copy error link button
+        const copyErrorBtn = document.getElementById('copy-error-link');
+        if (copyErrorBtn) {
+            copyErrorBtn.addEventListener('click', async () => {
+                const brokenUrl = window.location.href;
+                const emailLink = document.querySelector('.error-contact a[href^="mailto:"]');
+                if (emailLink) {
+                    const currentHref = emailLink.getAttribute('href');
+                    const newHref = currentHref.replace(/body=[^&]*/, `body=${encodeURIComponent('Found a broken link: ' + brokenUrl)}`);
+                    emailLink.setAttribute('href', newHref);
+                }
+
+                try {
+                    await navigator.clipboard.writeText(brokenUrl);
+                    copyErrorBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyErrorBtn.textContent = 'Copy this link';
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                    copyErrorBtn.textContent = 'Failed to copy';
+                    setTimeout(() => {
+                        copyErrorBtn.textContent = 'Copy this link';
+                    }, 2000);
+                }
             });
         }
     });
