@@ -2119,6 +2119,22 @@ code[class*="language-"] {
     margin-left: var(--space-sm);
 }
 
+.tag-search-link {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-left: var(--space-sm);
+    padding: 0.1em 0.4em;
+    border-radius: var(--radius-sm);
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.tag-search-link:hover {
+    color: var(--accent);
+    background: var(--bg-paper);
+}
+
 .tag-post-list {
     list-style: none;
     padding: 0;

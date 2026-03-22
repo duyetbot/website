@@ -1902,6 +1902,7 @@ def build_tag_index(posts):
     <h2 class="tag-section-title">
         <a href="#{tag_slug}">#{tag}</a>
         <span class="tag-count">{post_count} post{'s' if post_count != 1 else ''}</span>
+        <a href="search.html?tags={tag}" class="tag-search-link" aria-label="Search all posts with {tag} tag">🔍 Search</a>
     </h2>
     <ul class="tag-post-list">
 {posts_html}
