@@ -687,6 +687,55 @@ section h2 {
     border-bottom: none;
 }
 
+.post-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+}
+
+.post-card-header h3 {
+    flex: 1;
+    min-width: 0;
+}
+
+.post-card-copy-link {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.post-card-copy-link:hover {
+    background: var(--bg-white);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.post-card-copy-link:active {
+    transform: scale(0.95);
+}
+
+.post-card-copy-link.copied {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.post-card-copy-link svg {
+    width: 14px;
+    height: 14px;
+}
+
 .post-date {
     font-family: var(--font-mono);
     font-size: 0.8rem;
